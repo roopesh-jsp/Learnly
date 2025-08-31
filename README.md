@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Learnly
 
-## Getting Started
+### Personalized Learning Tracker
 
-First, run the development server:
+**Learnly** is a smart, personalized learning tracker designed to help you achieve your long-term educational goals.  
+This app moves beyond simple task management by intelligently generating micro-goals from your larger aspirations and providing insightful weekly progress reports.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+By integrating **Gemini AI**, Learnly provides a unique, data-driven approach to learning, helping you stay motivated and on track.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Learnly** is built to provide a comprehensive and motivating learning experience. Here's a look at some of its core functionalities:
 
-## Learn More
+- **Intelligent Goal Breakdown**  
+  Instead of feeling overwhelmed by a big goal like _"learn Python,"_ Gemini AI breaks it down into small, actionable steps, such as _"complete a beginner's Python tutorial"_ or _"build a simple web scraper."_
 
-To learn more about Next.js, take a look at the following resources:
+- **Progress Visualization**  
+  A custom dashboard provides a clear visual representation of your learning journey with charts and graphs, allowing you to easily see your progress over time.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **AI-Powered Reports**  
+  At the end of each week, Gemini AI compiles your completed micro-goals into a concise report, highlighting your accomplishments and offering a summary of your efforts.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Google Calendar Sync**  
+  Effortlessly sync your micro-goals to your Google Calendar, making it simple to plan your study sessions and manage your time effectively.
 
-## Deploy on Vercel
+- **Gamified Motivation**  
+  A built-in badge system rewards you for milestones and streaks, adding a fun, gamified element to your learning journey and keeping you engaged.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠️ Technology Stack
+
+Learnly is built using the **MERN stack**, with a focus on creating a robust and scalable application.
+
+- **Frontend**: Next.js + React.js → fast and interactive user interface.
+- **Backend**: Node.js + Express → handles user authentication, goal management, and API integrations.
+- **Database**: MongoDB → stores user data, including goals, progress, and reports.
+- **AI**: Gemini AI → drives intelligent goal generation and progress summary features.
+
+---
+
+✨ Whether you're tackling a new programming language or mastering a complex subject, **Learnly** is your intelligent partner in education.
