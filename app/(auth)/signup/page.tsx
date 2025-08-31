@@ -1,20 +1,18 @@
-import { redirect } from "next/navigation";
-import { auth, signIn } from "@/lib/auth";
+"use client";
+
+// It's best practice to import from "next-auth/react" in client components
+import { signIn } from "next-auth/react";
 import React from "react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const Page = async () => {
-  const session = await auth();
-  if (session) redirect("/");
-
+const Page = () => {
   return (
     <div className="flex min-h-screen items-center justify-center  px-4">
       <Card className="w-full max-w-md shadow-lg ">
@@ -29,35 +27,23 @@ const Page = async () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <form
-            action={async () => {
-              "use server";
-              await signIn("github");
-            }}
+          <Button
+            type="button" // Changed to "button"
+            onClick={() => signIn("github")}
+            variant="default"
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white"
           >
-            <Button
-              type="submit"
-              variant="default"
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-            >
-              Sign in with GitHub
-            </Button>
-          </form>
+            Sign in with GitHub
+          </Button>
 
-          <form
-            action={async () => {
-              "use server";
-              await signIn("google");
-            }}
+          <Button
+            type="button" // Changed to "button"
+            variant="default"
+            onClick={() => signIn("google")}
+            className="w-full bg-gray-900 hover:bg-gray-800 text-white"
           >
-            <Button
-              type="submit"
-              variant="default"
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-            >
-              Sign in with Google
-            </Button>
-          </form>
+            Sign in with Google
+          </Button>
         </CardContent>
       </Card>
     </div>
