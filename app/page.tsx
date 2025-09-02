@@ -1,18 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { signOut } from "@/lib/auth";
+import { auth, signOut } from "@/lib/auth";
+import { Hero } from "@/components/custom/Home";
 
 export default async function Home() {
+  const user = await auth();
   return (
     <div>
-      hai
-      <form
-        action={async () => {
-          "use server";
-          await signOut();
-        }}
-      >
-        <Button>logout</Button>
-      </form>
+      <Hero />
     </div>
   );
 }
