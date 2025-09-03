@@ -5,10 +5,20 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 export default function Navbar() {
   const [isDark, setIsDark] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
+  const { data: session } = useSession();
+
+  // Define nav links
+  const navLinks = [
+    { name: "Roadmaps", href: "/roadmaps" },
+    { name: "My learning", href: "/my-learning" },
+    { name: "Dashboard", href: "/dashboard" },
+  ];
 
   // Load theme from localStorage (persist across refresh)
   useEffect(() => {
@@ -39,24 +49,32 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 w-full bg-background/80 backdrop-blur-md border-b border-border z-50">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <h1 className="text-2xl font-bold text-primary tracking-tight">
-          Learnly
-        </h1>
+        <Link href={"/"}>
+          <h1 className="text-2xl font-bold text-primary tracking-tight">
+            Learnly
+          </h1>
+        </Link>
 
         {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-6">
-          <Link
-            href="/dashboard"
-            className="text-foreground hover:text-primary transition-colors"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/goals"
-            className="text-foreground hover:text-primary transition-colors"
-          >
-            Goals
-          </Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-foreground hover:text-primary transition-colors"
+            >
+              {link.name}
+            </Link>
+          ))}
+
+          {/* Auth Buttons */}
+          {session ? (
+            <Button variant="outline" onClick={() => signOut()}>
+              Logout
+            </Button>
+          ) : (
+            <Button onClick={() => signIn()}>Login</Button>
+          )}
 
           {/* Dark Mode Toggle */}
           <Button
@@ -110,20 +128,40 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="md:hidden bg-background border-t border-border px-6 py-4 space-y-4"
           >
-            <Link
-              href="/dashboard"
-              onClick={() => setIsOpen(false)}
-              className="block text-foreground hover:text-primary transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/goals"
-              onClick={() => setIsOpen(false)}
-              className="block text-foreground hover:text-primary transition-colors"
-            >
-              Goals
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className="block text-foreground hover:text-primary transition-colors"
+              >
+                {link.name}
+              </Link>
+            ))}
+
+            {/* Auth Buttons Mobile */}
+            {session ? (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setIsOpen(false);
+                  signOut();
+                }}
+              >
+                Logout
+              </Button>
+            ) : (
+              <Button
+                className="w-full"
+                onClick={() => {
+                  setIsOpen(false);
+                  signIn();
+                }}
+              >
+                Login
+              </Button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

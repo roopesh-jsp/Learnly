@@ -23,7 +23,7 @@ export function Hero() {
             Stay ahead.
           </p>
           <div className="flex gap-4 flex-col sm:flex-row">
-            <Button size="lg" onClick={() => router.push("/goals")}>
+            <Button size="lg" onClick={() => router.push("/roadmaps")}>
               Get Started
             </Button>
 
