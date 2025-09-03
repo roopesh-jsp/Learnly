@@ -8,8 +8,8 @@ import { useRouter } from "next/navigation";
 export function Hero() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-white text-gray-900 dark:bg-background dark:text-foreground">
-      <div className="max-w-6xl mx-auto px-6">
+    <div className="min-h-screen md:mt-16 bg-white text-gray-900 dark:bg-background dark:text-foreground">
+      <div className=" px-6">
         {/* Hero Section */}
         <section className="flex flex-col items-center justify-center text-center py-24">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 flex flex-col md:gap-2">
@@ -17,7 +17,7 @@ export function Hero() {
 
             <span className="text-[#3F72AF] "> Learning Tracker</span>
           </h1>
-          <p className="text-md md:text-xl text-gray-600 dark:text-muted-foreground max-w-2xl mb-8">
+          <p className="text-md md:text-lg text-gray-600 dark:text-muted-foreground max-w-2xl mb-8">
             Achieve your educational goals with AI-powered micro-goals, progress
             reports, and gamified motivation. Stay consistent. Stay motivated.
             Stay ahead.
@@ -33,8 +33,11 @@ export function Hero() {
           </div>
         </section>
 
+        <h1 className="md:text-5xl text-3xl  mt-10 text-center font-semibold">
+          What you get Here
+        </h1>
         {/* Features Section */}
-        <section className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <section className="pt-10 pb-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <Card className="rounded-2xl shadow-sm hover:shadow-lg transition">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <BookOpen className="h-12 w-12 text-primary mb-4" />

@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center bg-white text-gray-900 dark:bg-background dark:text-foreground px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center text-center bg-background text-foreground px-6">
       {/* Icon */}
       <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6">
         <Home className="w-10 h-10 text-primary" />
