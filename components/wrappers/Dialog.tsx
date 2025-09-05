@@ -26,15 +26,15 @@ const Dialog = ({
   return (
     <>
       {isOpen ? (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <Card className="bg-background min-w-xl relative p-4">
+        <div className="fixed inset-0 bg-black/50 flex justify-center  ">
+          <Card className="bg-background min-w-xl relative p-4 max-h-[550px] h-fit overflow-y-auto rounded-lg mt-[100px]">
             <div
               className="absolute top-4 right-4 text-primary cursor-pointer hover:bg-primary/10 p-2 rounded-full transition"
               onClick={() => close(false)}
             >
               <X size={17} />
             </div>
-            {children}
+            <div className="p-6 mt-3">{children}</div>
           </Card>
         </div>
       ) : null}

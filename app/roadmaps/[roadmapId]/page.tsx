@@ -1,7 +1,3 @@
-"use client";
-
-import { useParams } from "next/navigation";
-import { roadmapData } from "@/data";
 import {
   Card,
   CardHeader,
@@ -17,27 +13,11 @@ import {
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 
-// ---- Types ----
-type MicroGoal = {
-  id: string;
-  title: string;
-  tasks: string[];
-};
+import { getRoadmapDataWithId } from "@/services/roadmaps";
 
-type Roadmap = {
-  id: number;
-  title: string;
-  description: string;
-  microGoals: MicroGoal[];
-};
-
-const RoadMap = () => {
-  const params = useParams<{ roadmapId: string }>();
-  const roadmapId = Number(params.roadmapId);
-
-  const roadMap: Roadmap | undefined = roadmapData.find(
-    (r) => r.id === roadmapId
-  );
+const RoadMap = async ({ params }: { params: { roadmapId: string } }) => {
+  const roadmapId = params.roadmapId;
+  const roadMap = await getRoadmapDataWithId(roadmapId);
 
   if (!roadMap) return <div className="p-6 text-center">Roadmap not found</div>;
 
@@ -53,23 +33,19 @@ const RoadMap = () => {
         <Separator />
         <CardContent className="mt-4 space-y-4">
           <Accordion type="single" collapsible>
-            {roadMap.microGoals.map((goal) => (
-              <AccordionItem key={goal.id} value={goal.id}>
-                <AccordionTrigger
-                  className="font-semibold text-lg text-[var(--primary)] 
-                             hover:no-underline hover:bg-[var(--primary)]/10 
-                             rounded-md px-3 py-4 cursor-pointer transition"
-                >
-                  {goal.title}
+            {roadMap.microtasks.map((microtask) => (
+              <AccordionItem key={microtask.id} value={microtask.id}>
+                <AccordionTrigger className="font-semibold text-lg text-[var(--primary)] hover:no-underline hover:bg-[var(--primary)]/10 rounded-md px-3 py-4 cursor-pointer transition">
+                  {microtask.title}
                 </AccordionTrigger>
                 <AccordionContent>
                   <ul className="list-disc list-inside space-y-2 pl-4">
-                    {goal.tasks.map((task, idx) => (
+                    {microtask.tasks.map((task) => (
                       <li
-                        key={idx}
+                        key={task.id}
                         className="text-sm text-gray-700 leading-relaxed hover:bg-gray-50 rounded-md px-2 py-1 transition"
                       >
-                        {task}
+                        {task.title}
                       </li>
                     ))}
                   </ul>

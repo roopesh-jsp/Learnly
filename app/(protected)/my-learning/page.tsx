@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import {
   Card,
@@ -10,13 +11,19 @@ import { Code, Server, Layers, PenTool } from "lucide-react";
 
 // roadmap data
 import { roadmapData } from "@/data";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import AddRoadmap from "@/components/custom/AddRoadmap";
 
 export default function Roadmap() {
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-center mb-8 text-primary">
         Developer & Designer Roadmap
       </h1>
+      <Button onClick={() => setIsAddFormOpen(true)}>Add a roadMap</Button>
+
       <div className="grid md:grid-cols-2 gap-6">
         {roadmapData.map((role) => (
           <Link key={role.id} href={`/my-learning/${role.id}`}>
@@ -31,6 +38,11 @@ export default function Roadmap() {
           </Link>
         ))}
       </div>
+      {isAddFormOpen ? (
+        <AddRoadmap isOpen={isAddFormOpen} close={setIsAddFormOpen} />
+      ) : (
+        <></>
+      )}
     </div>
   );
 }
