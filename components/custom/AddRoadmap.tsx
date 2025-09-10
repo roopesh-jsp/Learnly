@@ -76,9 +76,25 @@ export default function AddRoadmap({
   };
 
   // Submit form
-  const handleSubmit = () => {
-    console.log("Roadmap form:", form);
-    close(false);
+  const handleSubmit = async () => {
+    try {
+      const res = await fetch("/api/roadmaps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) throw new Error("Failed to save roadmap");
+
+      const data = await res.json();
+      console.log("Saved roadmap:", data);
+      // optional: reset form after submission
+      setForm({ title: "", description: "", microtasks: [] });
+
+      close(false);
+    } catch (error) {
+      console.error("Error submitting roadmap:", error);
+    }
   };
 
   return (

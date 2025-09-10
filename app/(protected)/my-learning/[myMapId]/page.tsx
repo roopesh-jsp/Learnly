@@ -1,8 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState } from "react";
-import { roadmapData } from "@/data";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -19,106 +18,92 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Roadmap, Microtask, Task, UserTask } from "@prisma/client";
+import { getUserRoadMap } from "@/services/roadmaps";
 
-// ---- Types ----
-type MicroGoal = {
-  id: string;
-  title: string;
-  tasks: string[];
-};
-
-type Roadmap = {
-  id: number;
-  title: string;
-  description: string;
-  microGoals: MicroGoal[];
-};
+type TaskWithStatus = Task & { userTasks: UserTask[] };
+type MicrotaskWithTasks = Microtask & { tasks: TaskWithStatus[] };
+type RoadmapWithData = Roadmap & { microtasks: MicrotaskWithTasks[] };
 
 const RoadMap = () => {
   const params = useParams<{ myMapId: string }>();
-  const roadmapId = Number(params.myMapId);
+  const roadmapId = params.myMapId;
 
-  const roadMap: Roadmap | undefined = roadmapData.find(
-    (r) => r.id === roadmapId
-  );
-
-  const [microGoals, setMicroGoals] = useState<MicroGoal[]>(
-    roadMap?.microGoals || []
-  );
-  const [addingGoal, setAddingGoal] = useState(false);
-  const [newGoalTitle, setNewGoalTitle] = useState("");
+  const [roadmap, setRoadmap] = useState<RoadmapWithData | null>(null);
   const [taskInputs, setTaskInputs] = useState<
     Record<string, string | undefined>
   >({});
+  const [addingMicro, setAddingMicro] = useState(false);
+  const [newMicroTitle, setNewMicroTitle] = useState("");
 
-  // --- Add Goal ---
-  const handleAddGoalUI = () => setAddingGoal(true);
+  const fetchRoadmap = async () => {
+    const res = await getUserRoadMap(roadmapId);
+    setRoadmap(res);
+  };
+  useEffect(() => {
+    fetchRoadmap();
+  }, [roadmapId]);
 
-  const handleSaveGoal = () => {
-    if (!newGoalTitle.trim()) return;
-    const newGoal: MicroGoal = {
-      id: `new_${Date.now()}`,
-      title: newGoalTitle,
-      tasks: [],
-    };
-    setMicroGoals((prev) => [...prev, newGoal]);
-    setNewGoalTitle("");
-    setAddingGoal(false);
+  // Toggle task done
+  const handleToggleTask = async (taskId: string) => {
+    await fetch(`/api/tasks/${taskId}/toggle`, { method: "POST" });
+    fetchRoadmap();
   };
 
-  const handleCancelGoal = () => {
-    setNewGoalTitle("");
-    setAddingGoal(false);
+  // Add task
+  const handleAddTask = async (microtaskId: string) => {
+    const title = taskInputs[microtaskId];
+    if (!title?.trim()) return;
+
+    await fetch(`/api/microtasks/${microtaskId}/tasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    });
+
+    setTaskInputs({ ...taskInputs, [microtaskId]: undefined });
+    fetchRoadmap();
   };
 
-  // --- Add Task ---
-  const handleAddTaskUI = (goalId: string) => {
-    setTaskInputs({ ...taskInputs, [goalId]: "" });
+  // Add microtask
+  const handleAddMicrotask = async () => {
+    if (!newMicroTitle.trim()) return;
+    await fetch(`/api/roadmaps/${roadmapId}/microtasks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: newMicroTitle }),
+    });
+    setNewMicroTitle("");
+    setAddingMicro(false);
+    fetchRoadmap();
   };
 
-  const handleSaveTask = (goalId: string) => {
-    const task = taskInputs[goalId];
-    if (!task || !task.trim()) return;
-
-    setMicroGoals((prev) =>
-      prev.map((g) =>
-        g.id === goalId ? { ...g, tasks: [...g.tasks, task] } : g
-      )
-    );
-    setTaskInputs({ ...taskInputs, [goalId]: undefined });
-  };
-
-  const handleCancelTask = (goalId: string) => {
-    setTaskInputs({ ...taskInputs, [goalId]: undefined });
-  };
-
-  if (!roadMap) return <div className="p-6 text-center">Roadmap not found</div>;
+  if (!roadmap) return <div className="p-6 text-center">Loading...</div>;
 
   return (
     <div className="w-full min-h-screen p-6 ">
       <Card className="w-full max-w-5xl mx-auto rounded-2xl shadow-lg border border-[var(--primary)]/30 relative">
         <CardHeader>
           <CardTitle className="text-3xl text-[var(--primary)]">
-            {roadMap.title}
+            {roadmap.title}
           </CardTitle>
-          <CardDescription>{roadMap.description}</CardDescription>
+          <CardDescription>{roadmap.description}</CardDescription>
           <div className="absolute top-6 right-6">
-            {addingGoal ? (
+            {addingMicro ? (
               <div className="flex gap-2">
                 <Input
-                  value={newGoalTitle}
-                  onChange={(e) => setNewGoalTitle(e.target.value)}
-                  placeholder="New micro goal"
+                  value={newMicroTitle}
+                  onChange={(e) => setNewMicroTitle(e.target.value)}
+                  placeholder="New microtask"
                   className="w-48"
                 />
                 <Button
-                  variant="default"
+                  onClick={handleAddMicrotask}
                   className="bg-[var(--primary)]"
-                  onClick={handleSaveGoal}
                 >
                   Save
                 </Button>
-                <Button variant="outline" onClick={handleCancelGoal}>
+                <Button variant="outline" onClick={() => setAddingMicro(false)}>
                   Cancel
                 </Button>
               </div>
@@ -126,9 +111,9 @@ const RoadMap = () => {
               <Button
                 variant="outline"
                 className="border-[var(--primary)] text-[var(--primary)]"
-                onClick={handleAddGoalUI}
+                onClick={() => setAddingMicro(true)}
               >
-                + Add Micro Goal
+                + Add Microtask
               </Button>
             )}
           </div>
@@ -136,29 +121,25 @@ const RoadMap = () => {
         <Separator />
         <CardContent className="mt-6 space-y-4">
           <Accordion type="single" collapsible className="space-y-3">
-            {microGoals.map((goal) => (
+            {roadmap.microtasks.map((micro) => (
               <AccordionItem
-                key={goal.id}
-                value={goal.id}
-                className="rounded-xl border border-gray-200 p-3 bg-white hover:bg-[var(--primary)]/10   transition"
+                key={micro.id}
+                value={micro.id}
+                className="rounded-xl border p-3"
               >
                 <div className="relative">
-                  <AccordionTrigger
-                    className="font-semibold text-lg text-[var(--primary)] 
-             hover:no-underline 
-             rounded-md px-3 py-2 transition  cursor-pointer"
-                  >
-                    {goal.title}
+                  <AccordionTrigger className="font-semibold text-lg text-[var(--primary)]">
+                    {micro.title}
                   </AccordionTrigger>
                   <div className="absolute top-2 right-2">
-                    {taskInputs[goal.id] !== undefined ? (
+                    {taskInputs[micro.id] !== undefined ? (
                       <div className="flex gap-2">
                         <Input
-                          value={taskInputs[goal.id] || ""}
+                          value={taskInputs[micro.id] || ""}
                           onChange={(e) =>
                             setTaskInputs({
                               ...taskInputs,
-                              [goal.id]: e.target.value,
+                              [micro.id]: e.target.value,
                             })
                           }
                           placeholder="New task"
@@ -166,15 +147,19 @@ const RoadMap = () => {
                         />
                         <Button
                           size="sm"
-                          className="bg-[var(--primary)]"
-                          onClick={() => handleSaveTask(goal.id)}
+                          onClick={() => handleAddTask(micro.id)}
                         >
                           Save
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleCancelTask(goal.id)}
+                          onClick={() =>
+                            setTaskInputs({
+                              ...taskInputs,
+                              [micro.id]: undefined,
+                            })
+                          }
                         >
                           Cancel
                         </Button>
@@ -183,8 +168,9 @@ const RoadMap = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-[var(--primary)] text-[var(--primary)]"
-                        onClick={() => handleAddTaskUI(goal.id)}
+                        onClick={() =>
+                          setTaskInputs({ ...taskInputs, [micro.id]: "" })
+                        }
                       >
                         + Add Task
                       </Button>
@@ -193,15 +179,31 @@ const RoadMap = () => {
                 </div>
                 <AccordionContent>
                   <ul className="space-y-2 mt-3 pl-4">
-                    {goal.tasks.map((task, idx) => (
-                      <li
-                        key={idx}
-                        className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-[var(--primary)]/10 transition cursor-pointer"
-                      >
-                        <input type="checkbox" className="h-4 w-4" />
-                        <span className="text-sm text-gray-700">{task}</span>
-                      </li>
-                    ))}
+                    {micro.tasks.map((task) => {
+                      const done = task.userTasks[0]?.done ?? false;
+                      return (
+                        <li
+                          key={task.id}
+                          className="flex items-center gap-2 p-2 rounded-lg bg-gray-50"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={done}
+                            onChange={() => handleToggleTask(task.id)}
+                            className="h-4 w-4"
+                          />
+                          <span
+                            className={
+                              done
+                                ? "line-through text-gray-500"
+                                : "text-gray-700"
+                            }
+                          >
+                            {task.title}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </AccordionContent>
               </AccordionItem>
