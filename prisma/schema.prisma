@@ -64,9 +64,9 @@ model Roadmap {
   title       String
   description String?
   isPublic    Boolean      @default(false)
-  ownerId     String       // who created it
+  ownerId     String       
 
-  owner       User         @relation("UserRoadmaps",fields: [ownerId], references: [id])
+  owner       User         @relation("UserRoadmaps", fields: [ownerId], references: [id], onDelete: Cascade)
   microtasks  Microtask[]
   clones      ClonedRoadmap[]
 }
@@ -76,7 +76,7 @@ model Microtask {
   title     String
   roadmapId String
 
-  roadmap   Roadmap  @relation(fields: [roadmapId], references: [id])
+  roadmap   Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
   tasks     Task[]
 }
 
@@ -85,7 +85,7 @@ model Task {
   title       String
   microtaskId String
 
-  microtask   Microtask  @relation(fields: [microtaskId], references: [id])
+  microtask   Microtask  @relation(fields: [microtaskId], references: [id], onDelete: Cascade)
   userTasks   UserTask[]
 }
 
@@ -95,20 +95,20 @@ model UserTask {
   taskId  String
   done    Boolean @default(false)
 
-  user    User   @relation(fields: [userId], references: [id])
-  task    Task   @relation(fields: [taskId], references: [id])
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@unique([userId, taskId])
 }
 
 model ClonedRoadmap {
   id        String   @id @default(uuid())
-  userId    String   // who cloned it
-  roadmapId String   // reference to original roadmap
+  userId    String   
+  roadmapId String   
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
-  roadmap   Roadmap  @relation(fields: [roadmapId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roadmap   Roadmap  @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roadmapId]) // a user can clone only once
 }
