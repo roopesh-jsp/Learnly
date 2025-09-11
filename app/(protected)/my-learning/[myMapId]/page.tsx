@@ -20,16 +20,31 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Roadmap, Microtask, Task, UserTask } from "@prisma/client";
 import { getUserRoadMap } from "@/services/roadmaps";
+import { useSession } from "next-auth/react";
+import { Pencil, Trash } from "lucide-react";
+import EditProperties from "@/components/custom/EditProperties";
+import DeleteRoadmap from "@/components/custom/DeleteRoadmap";
 
 type TaskWithStatus = Task & { userTasks: UserTask[] };
 type MicrotaskWithTasks = Microtask & { tasks: TaskWithStatus[] };
 type RoadmapWithData = Roadmap & { microtasks: MicrotaskWithTasks[] };
 
+export type PropertiesData = {
+  title: string;
+  description: string;
+  isPublic: boolean;
+};
+
 const RoadMap = () => {
   const params = useParams<{ myMapId: string }>();
   const roadmapId = params.myMapId;
+  const session = useSession();
 
   const [roadmap, setRoadmap] = useState<RoadmapWithData | null>(null);
+  const [isCloned, setIsCloned] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
+
   const [taskInputs, setTaskInputs] = useState<
     Record<string, string | undefined>
   >({});
@@ -38,8 +53,10 @@ const RoadMap = () => {
 
   const fetchRoadmap = async () => {
     const res = await getUserRoadMap(roadmapId);
+    setIsCloned(res?.ownerId !== session.data?.user?.id);
     setRoadmap(res);
   };
+
   useEffect(() => {
     fetchRoadmap();
   }, [roadmapId]);
@@ -78,45 +95,105 @@ const RoadMap = () => {
     fetchRoadmap();
   };
 
+  const handlePropertiesUpdate = async (data: PropertiesData) => {
+    try {
+      const res = await fetch("/api/roadmaps", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, id: roadmapId }),
+      });
+      fetchRoadmap();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const res = await fetch("/api/roadmaps", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: roadmapId }),
+      });
+      console.log(res.json());
+
+      fetchRoadmap();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   if (!roadmap) return <div className="p-6 text-center">Loading...</div>;
 
   return (
-    <div className="w-full min-h-screen p-6 ">
-      <Card className="w-full max-w-5xl mx-auto rounded-2xl shadow-lg border border-[var(--primary)]/30 relative">
+    <div className="w-full mt-20 min-h-screen p-6 relative">
+      <div className="absolute top-0 right-0">
+        {/* Pencil Icon for edit toggle */}
+        {!isCloned && (
+          <button
+            onClick={() => setEditMode(!editMode)}
+            className=" text-gray-600 bg-secondary p-2 rounded-lg hover:text-[var(--primary)] transition flex gap-2 items-center"
+          >
+            <Pencil className="w-4 h-4" /> <span>Properties</span>
+          </button>
+        )}
+        {/*delete Icon to delete */}
+
+        <button
+          onClick={() => setDeleteMode(true)}
+          className=" text-gray-600 bg-secondary p-2 rounded-lg hover:text-[var(--primary)] transition flex gap-2 items-center"
+        >
+          <Trash className="w-4 h-4" />{" "}
+          <span>{isCloned ? "un-clone" : "Delete"}</span>
+        </button>
+      </div>
+      <Card className="w-full max-w-5xl mt-10 mx-auto rounded-2xl shadow-lg border border-[var(--primary)]/30 relative">
+        {isCloned && (
+          <div className="absolute top-0 right-0 w-20 text-center rounded-bl-2xl rounded-tr-2xl   bg-amber-500 text-white text-xs font-bold py-1 shadow-md">
+            Cloned
+          </div>
+        )}
         <CardHeader>
           <CardTitle className="text-3xl text-[var(--primary)]">
             {roadmap.title}
           </CardTitle>
           <CardDescription>{roadmap.description}</CardDescription>
-          <div className="absolute top-6 right-6">
-            {addingMicro ? (
-              <div className="flex gap-2">
-                <Input
-                  value={newMicroTitle}
-                  onChange={(e) => setNewMicroTitle(e.target.value)}
-                  placeholder="New microtask"
-                  className="w-48"
-                />
+
+          {/* Add microtask button, hidden if cloned */}
+          {!isCloned && (
+            <div className="absolute top-6 right-16">
+              {addingMicro ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={newMicroTitle}
+                    onChange={(e) => setNewMicroTitle(e.target.value)}
+                    placeholder="New microtask"
+                    className="w-48"
+                  />
+                  <Button
+                    onClick={handleAddMicrotask}
+                    className="bg-[var(--primary)]"
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setAddingMicro(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
                 <Button
-                  onClick={handleAddMicrotask}
-                  className="bg-[var(--primary)]"
+                  variant="outline"
+                  className="border-[var(--primary)] text-[var(--primary)]"
+                  onClick={() => setAddingMicro(true)}
                 >
-                  Save
+                  + Add Microtask
                 </Button>
-                <Button variant="outline" onClick={() => setAddingMicro(false)}>
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                className="border-[var(--primary)] text-[var(--primary)]"
-                onClick={() => setAddingMicro(true)}
-              >
-                + Add Microtask
-              </Button>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </CardHeader>
         <Separator />
         <CardContent className="mt-6 space-y-4">
@@ -131,52 +208,57 @@ const RoadMap = () => {
                   <AccordionTrigger className="font-semibold text-lg text-[var(--primary)]">
                     {micro.title}
                   </AccordionTrigger>
-                  <div className="absolute top-2 right-2">
-                    {taskInputs[micro.id] !== undefined ? (
-                      <div className="flex gap-2">
-                        <Input
-                          value={taskInputs[micro.id] || ""}
-                          onChange={(e) =>
-                            setTaskInputs({
-                              ...taskInputs,
-                              [micro.id]: e.target.value,
-                            })
-                          }
-                          placeholder="New task"
-                          className="w-40"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={() => handleAddTask(micro.id)}
-                        >
-                          Save
-                        </Button>
+
+                  {/* Add task button, hidden if cloned */}
+                  {!isCloned && (
+                    <div className="absolute top-2 right-2">
+                      {taskInputs[micro.id] !== undefined ? (
+                        <div className="flex gap-2">
+                          <Input
+                            value={taskInputs[micro.id] || ""}
+                            onChange={(e) =>
+                              setTaskInputs({
+                                ...taskInputs,
+                                [micro.id]: e.target.value,
+                              })
+                            }
+                            placeholder="New task"
+                            className="w-40"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => handleAddTask(micro.id)}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setTaskInputs({
+                                ...taskInputs,
+                                [micro.id]: undefined,
+                              })
+                            }
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() =>
-                            setTaskInputs({
-                              ...taskInputs,
-                              [micro.id]: undefined,
-                            })
+                            setTaskInputs({ ...taskInputs, [micro.id]: "" })
                           }
                         >
-                          Cancel
+                          + Add Task
                         </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          setTaskInputs({ ...taskInputs, [micro.id]: "" })
-                        }
-                      >
-                        + Add Task
-                      </Button>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+
                 <AccordionContent>
                   <ul className="space-y-2 mt-3 pl-4">
                     {micro.tasks.map((task) => {
@@ -211,6 +293,26 @@ const RoadMap = () => {
           </Accordion>
         </CardContent>
       </Card>
+      {editMode && (
+        <EditProperties
+          isOpen={editMode}
+          close={setEditMode}
+          initialData={{
+            title: roadmap.title,
+            description: roadmap.description || "",
+            isPublic: roadmap.isPublic ?? false,
+          }}
+          onSave={handlePropertiesUpdate}
+        />
+      )}
+      {deleteMode && (
+        <DeleteRoadmap
+          close={setDeleteMode}
+          isOpen={deleteMode}
+          onDelete={handleDelete}
+          isCloned={isCloned}
+        />
+      )}
     </div>
   );
 };
