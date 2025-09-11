@@ -1,12 +1,7 @@
 "use server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import {
-  Roadmap as PrismaRoadmap,
-  Microtask as PrismaMicrotask,
-  Task as PrismaTask,
-  Prisma,
-} from "@prisma/client";
+import { Roadmap as PrismaRoadmap, Prisma, Roadmap } from "@prisma/client";
 
 export type RoadmapWithData = Prisma.RoadmapGetPayload<{
   include: {
@@ -29,6 +24,26 @@ export async function getRoadmapsData() {
         isPublic: true,
       },
       include: {
+        owner: true,
+        _count: {
+          select: { clones: true }, // gives you the number of clones
+        },
+      },
+    });
+
+    return roadmapData;
+  } catch (error) {
+    console.log("Error getting roadmap data:", error);
+  }
+}
+
+export async function getRoadmapDataWithId(
+  id: string
+): Promise<RoadmapWithData | null> {
+  try {
+    const roadmap = await db.roadmap.findUnique({
+      where: { id },
+      include: {
         microtasks: {
           include: {
             tasks: true,
@@ -36,52 +51,43 @@ export async function getRoadmapsData() {
         },
       },
     });
-    return roadmapData;
-  } catch (error) {
-    console.log("Error getting roadmap data:", error);
-  }
-}
 
-// No need for custom Roadmap/Microtask/Task types
+    if (!roadmap) return null;
 
-export async function getRoadmapDataWithId(id: string): Promise<
-  | (PrismaRoadmap & {
-      microtasks: (PrismaMicrotask & { tasks: PrismaTask[] })[];
-    })
-  | null
-> {
-  try {
-    const roadmapData = await db.roadmap.findFirst({
-      where: {
-        id,
-        isPublic: true,
-      },
-      include: {
-        microtasks: { include: { tasks: true } },
-      },
-    });
-    console.log(roadmapData);
-
-    return roadmapData;
+    return roadmap;
   } catch (error) {
     console.log("Error getting roadmap data:", error);
     return null;
   }
 }
 
-export async function getUserRoadMaps(id: string): Promise<PrismaRoadmap[]> {
+export async function getUserRoadMaps(id: string): Promise<any[]> {
   try {
-    const roadmapData = await db.roadmap.findMany({
-      where: {
-        ownerId: id,
-      },
+    const userData = await db.user.findUnique({
+      where: { id },
       include: {
-        microtasks: { include: { tasks: true } },
+        roadmaps: true, // roadmaps the user owns
+        cloned: {
+          include: {
+            roadmap: true, // if ClonedRoadmap has relation to Roadmap
+          },
+        },
       },
     });
-    console.log(roadmapData);
 
-    return roadmapData;
+    if (!userData) return [];
+
+    // Combine owned + cloned into one array if you want a single list
+    const allRoadmaps = [
+      ...userData.roadmaps,
+      ...userData.cloned.map((c) => ({
+        ...c.roadmap,
+        isCloned: true,
+        clonedId: c.id,
+      })),
+    ];
+
+    return allRoadmaps;
   } catch (error) {
     console.log("Error getting roadmap data:", error);
     return [];

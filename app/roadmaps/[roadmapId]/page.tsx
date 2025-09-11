@@ -1,3 +1,4 @@
+"use client";
 import {
   Card,
   CardHeader,
@@ -13,12 +14,37 @@ import {
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 
-import { getRoadmapDataWithId } from "@/services/roadmaps";
+import { getRoadmapDataWithId, RoadmapWithData } from "@/services/roadmaps";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-const RoadMap = async ({ params }: { params: { roadmapId: string } }) => {
+const RoadMap = ({ params }: { params: { roadmapId: string } }) => {
   const roadmapId = params.roadmapId;
-  const roadMap = await getRoadmapDataWithId(roadmapId);
+  // const roadmapId = (await params).roadmapId;
+  const [roadMap, setRoadmap] = useState<RoadmapWithData | null>(null);
+  const router = useRouter();
 
+  const handleClone = async () => {
+    try {
+      await fetch(`/api/roadmaps/clone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: roadmapId }),
+      });
+      console.log("cloned Roadmap");
+      router.push("/my-learning");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      const data = await getRoadmapDataWithId(roadmapId);
+      if (data) setRoadmap(data);
+    })();
+  }, []);
   if (!roadMap) return <div className="p-6 text-center">Roadmap not found</div>;
 
   return (
@@ -53,6 +79,15 @@ const RoadMap = async ({ params }: { params: { roadmapId: string } }) => {
               </AccordionItem>
             ))}
           </Accordion>
+          <div className="flex justify-end w-full mt-10">
+            <Button
+              className="px-4 py-2 text-lg bg-primary text-secondary cursor-pointer hover:text-stone-800 hover:bg-stone-200 "
+              variant={"secondary"}
+              onClick={handleClone}
+            >
+              Clone
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
