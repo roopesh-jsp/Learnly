@@ -135,3 +135,23 @@ export async function getUserRoadMap(
     return null;
   }
 }
+
+export async function checkIsCloned(id: string): Promise<boolean> {
+  try {
+    const user = await auth();
+    const clonedMap = await db.user.findFirst({
+      where: {
+        id: user?.user?.id,
+        cloned: {
+          some: {
+            roadmapId: id,
+          },
+        },
+      },
+    });
+    return !!clonedMap;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}

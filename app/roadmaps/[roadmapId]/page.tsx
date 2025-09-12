@@ -14,16 +14,24 @@ import {
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 
-import { getRoadmapDataWithId, RoadmapWithData } from "@/services/roadmaps";
+import {
+  checkIsCloned,
+  getRoadmapDataWithId,
+  RoadmapWithData,
+} from "@/services/roadmaps";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import ShimmerLoader from "@/components/custom/Shimer";
+import { useSession } from "next-auth/react";
 
-const RoadMap = ({ params }: { params: { roadmapId: string } }) => {
-  const roadmapId = params.roadmapId;
+const RoadMap = () => {
+  const { roadmapId } = useParams() as { roadmapId: string };
   // const roadmapId = (await params).roadmapId;
   const [roadMap, setRoadmap] = useState<RoadmapWithData | null>(null);
+  const [isCloned, setIsCloned] = useState(false);
   const router = useRouter();
+  const sesssion = useSession();
 
   const handleClone = async () => {
     try {
@@ -42,10 +50,19 @@ const RoadMap = ({ params }: { params: { roadmapId: string } }) => {
   useEffect(() => {
     (async () => {
       const data = await getRoadmapDataWithId(roadmapId);
+      const isCloedRes = await checkIsCloned(roadmapId);
+      console.log(isCloedRes);
+
+      setIsCloned(isCloedRes);
       if (data) setRoadmap(data);
     })();
   }, []);
-  if (!roadMap) return <div className="p-6 text-center">Roadmap not found</div>;
+  if (!roadMap)
+    return (
+      <div className="p-6 text-center">
+        <ShimmerLoader />
+      </div>
+    );
 
   return (
     <div className="w-full min-h-screen p-6">
@@ -80,13 +97,23 @@ const RoadMap = ({ params }: { params: { roadmapId: string } }) => {
             ))}
           </Accordion>
           <div className="flex justify-end w-full mt-10">
-            <Button
-              className="px-4 py-2 text-lg bg-primary text-secondary cursor-pointer hover:text-stone-800 hover:bg-stone-200 "
-              variant={"secondary"}
-              onClick={handleClone}
-            >
-              Clone
-            </Button>
+            {isCloned || sesssion.data?.user?.id === roadMap.ownerId ? (
+              <Button
+                className="px-4 py-2 text-md bg-secondary text-primary cursor-pointer hover:text-stone-800 hover:bg-stone-200 "
+                variant={"secondary"}
+                onClick={() => router.push(`/my-learning/${roadmapId}`)}
+              >
+                Go to learning
+              </Button>
+            ) : (
+              <Button
+                className="px-4 py-2 text-lg bg-primary text-secondary cursor-pointer hover:text-stone-800 hover:bg-stone-200 "
+                variant={"secondary"}
+                onClick={handleClone}
+              >
+                Clone
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

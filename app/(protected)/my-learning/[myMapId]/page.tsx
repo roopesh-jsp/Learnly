@@ -19,11 +19,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Roadmap, Microtask, Task, UserTask } from "@prisma/client";
-import { getUserRoadMap } from "@/services/roadmaps";
+import { checkIsCloned, getUserRoadMap } from "@/services/roadmaps";
 import { useSession } from "next-auth/react";
 import { Pencil, Trash } from "lucide-react";
 import EditProperties from "@/components/custom/EditProperties";
 import DeleteRoadmap from "@/components/custom/DeleteRoadmap";
+import ShimmerLoader from "@/components/custom/Shimer";
 
 type TaskWithStatus = Task & { userTasks: UserTask[] };
 type MicrotaskWithTasks = Microtask & { tasks: TaskWithStatus[] };
@@ -52,47 +53,148 @@ const RoadMap = () => {
   const [newMicroTitle, setNewMicroTitle] = useState("");
 
   const fetchRoadmap = async () => {
-    const res = await getUserRoadMap(roadmapId);
-    setIsCloned(res?.ownerId !== session.data?.user?.id);
-    setRoadmap(res);
+    try {
+      const res = await getUserRoadMap(roadmapId);
+      // setIsCloned(res?.ownerId !== session.data?.user?.id);
+      // console.log(res?.ownerId, session.data?.user?.id);
+
+      setRoadmap(res);
+    } catch (error) {
+      console.log(error);
+    } finally {
+    }
   };
 
   useEffect(() => {
     fetchRoadmap();
+    if (roadmapId)
+      (async () => {
+        const isClonedRes = await checkIsCloned(roadmapId);
+        setIsCloned(isClonedRes);
+      })();
   }, [roadmapId]);
 
   // Toggle task done
-  const handleToggleTask = async (taskId: string) => {
-    await fetch(`/api/tasks/${taskId}/toggle`, { method: "POST" });
-    fetchRoadmap();
+  const handleToggleTask = async (taskId: string, microtaskId: string) => {
+    if (!roadmap) return;
+
+    // 1. Optimistically update local state
+    setRoadmap((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        microtasks: prev.microtasks.map((micro) =>
+          micro.id === microtaskId
+            ? {
+                ...micro,
+                tasks: micro.tasks.map((task) =>
+                  task.id === taskId
+                    ? {
+                        ...task,
+                        userTasks: [
+                          {
+                            ...task.userTasks[0],
+                            done: !(task.userTasks[0]?.done ?? false),
+                          },
+                        ],
+                      }
+                    : task
+                ),
+              }
+            : micro
+        ),
+      };
+    });
+
+    // 2. Call API in background
+    try {
+      await fetch(`/api/tasks/${taskId}/toggle`, { method: "POST" });
+    } catch (error) {
+      console.error("Toggle failed", error);
+      fetchRoadmap(); // fallback to resync if server fails
+    }
   };
 
   // Add task
   const handleAddTask = async (microtaskId: string) => {
     const title = taskInputs[microtaskId];
-    if (!title?.trim()) return;
+    if (!title?.trim() || !roadmap) return;
 
-    await fetch(`/api/microtasks/${microtaskId}/tasks`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title }),
+    // 1. Optimistically add new task
+    const tempId = `temp-${Date.now()}`;
+    setRoadmap((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        microtasks: prev.microtasks.map((micro) =>
+          micro.id === microtaskId
+            ? {
+                ...micro,
+                tasks: [
+                  ...micro.tasks,
+                  {
+                    id: tempId,
+                    title,
+                    userTasks: [{ done: false }],
+                  } as any, // temporary until backend gives real task
+                ],
+              }
+            : micro
+        ),
+      };
     });
 
+    // reset input field
     setTaskInputs({ ...taskInputs, [microtaskId]: undefined });
-    fetchRoadmap();
+
+    // 2. Sync with server
+    try {
+      await fetch(`/api/microtasks/${microtaskId}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      fetchRoadmap(); // resync for real IDs
+    } catch (error) {
+      console.error("Add task failed", error);
+      fetchRoadmap();
+    }
   };
 
   // Add microtask
   const handleAddMicrotask = async () => {
-    if (!newMicroTitle.trim()) return;
-    await fetch(`/api/roadmaps/${roadmapId}/microtasks`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newMicroTitle }),
-    });
+    if (!newMicroTitle.trim() || !roadmap) return;
+
+    const tempId = `temp-${Date.now()}`;
+
+    // optimistic update
+    setRoadmap((prev) =>
+      prev
+        ? {
+            ...prev,
+            microtasks: [
+              ...prev.microtasks,
+              { id: tempId, title: newMicroTitle, tasks: [] } as any,
+            ],
+          }
+        : prev
+    );
+
     setNewMicroTitle("");
     setAddingMicro(false);
-    fetchRoadmap();
+
+    try {
+      await fetch(`/api/roadmaps/${roadmapId}/microtasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newMicroTitle }),
+      });
+      fetchRoadmap(); // resync
+    } catch (error) {
+      console.error("Add microtask failed", error);
+      fetchRoadmap();
+    }
   };
 
   const handlePropertiesUpdate = async (data: PropertiesData) => {
@@ -123,11 +225,16 @@ const RoadMap = () => {
     }
   };
 
-  if (!roadmap) return <div className="p-6 text-center">Loading...</div>;
+  if (!roadmap)
+    return (
+      <div className="p-6 text-center">
+        <ShimmerLoader />
+      </div>
+    );
 
   return (
     <div className="w-full mt-20 min-h-screen p-6 relative">
-      <div className="absolute top-0 right-0">
+      <div className="flex gap-3 absolute top-0 right-0">
         {/* Pencil Icon for edit toggle */}
         {!isCloned && (
           <button
@@ -138,7 +245,6 @@ const RoadMap = () => {
           </button>
         )}
         {/*delete Icon to delete */}
-
         <button
           onClick={() => setDeleteMode(true)}
           className=" text-gray-600 bg-secondary p-2 rounded-lg hover:text-[var(--primary)] transition flex gap-2 items-center"
@@ -149,7 +255,7 @@ const RoadMap = () => {
       </div>
       <Card className="w-full max-w-5xl mt-10 mx-auto rounded-2xl shadow-lg border border-[var(--primary)]/30 relative">
         {isCloned && (
-          <div className="absolute top-0 right-0 w-20 text-center rounded-bl-2xl rounded-tr-2xl   bg-amber-500 text-white text-xs font-bold py-1 shadow-md">
+          <div className="absolute top-0 right-0 w-20 text-center rounded-bl-2xl rounded-tr-2xl bg-amber-500 text-white text-xs font-bold py-1 shadow-md">
             Cloned
           </div>
         )}
@@ -197,100 +303,117 @@ const RoadMap = () => {
         </CardHeader>
         <Separator />
         <CardContent className="mt-6 space-y-4">
-          <Accordion type="single" collapsible className="space-y-3">
-            {roadmap.microtasks.map((micro) => (
-              <AccordionItem
-                key={micro.id}
-                value={micro.id}
-                className="rounded-xl border p-3"
-              >
-                <div className="relative">
-                  <AccordionTrigger className="font-semibold text-lg text-[var(--primary)]">
-                    {micro.title}
-                  </AccordionTrigger>
+          {roadmap.microtasks.length === 0 ? (
+            <div className="text-center text-gray-500 italic py-6">
+              🚀 Nothing here yet...{" "}
+              {isCloned
+                ? "Ask the owner to add microtasks."
+                : "Start by adding a new microtask!"}
+            </div>
+          ) : (
+            <Accordion type="single" collapsible className="space-y-3">
+              {roadmap.microtasks.map((micro) => (
+                <AccordionItem
+                  key={micro.id}
+                  value={micro.id}
+                  className="rounded-xl border p-3"
+                >
+                  <div className="relative">
+                    <AccordionTrigger className="font-semibold text-lg text-[var(--primary)]">
+                      {micro.title}
+                    </AccordionTrigger>
 
-                  {/* Add task button, hidden if cloned */}
-                  {!isCloned && (
-                    <div className="absolute top-2 right-2">
-                      {taskInputs[micro.id] !== undefined ? (
-                        <div className="flex gap-2">
-                          <Input
-                            value={taskInputs[micro.id] || ""}
-                            onChange={(e) =>
-                              setTaskInputs({
-                                ...taskInputs,
-                                [micro.id]: e.target.value,
-                              })
-                            }
-                            placeholder="New task"
-                            className="w-40"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => handleAddTask(micro.id)}
-                          >
-                            Save
-                          </Button>
+                    {/* Add task button, hidden if cloned */}
+                    {!isCloned && (
+                      <div className="absolute top-2 right-2">
+                        {taskInputs[micro.id] !== undefined ? (
+                          <div className="flex gap-2">
+                            <Input
+                              value={taskInputs[micro.id] || ""}
+                              onChange={(e) =>
+                                setTaskInputs({
+                                  ...taskInputs,
+                                  [micro.id]: e.target.value,
+                                })
+                              }
+                              placeholder="New task"
+                              className="w-40"
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => handleAddTask(micro.id)}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                setTaskInputs({
+                                  ...taskInputs,
+                                  [micro.id]: undefined,
+                                })
+                              }
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() =>
-                              setTaskInputs({
-                                ...taskInputs,
-                                [micro.id]: undefined,
-                              })
+                              setTaskInputs({ ...taskInputs, [micro.id]: "" })
                             }
                           >
-                            Cancel
+                            + Add Task
                           </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            setTaskInputs({ ...taskInputs, [micro.id]: "" })
-                          }
-                        >
-                          + Add Task
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                <AccordionContent>
-                  <ul className="space-y-2 mt-3 pl-4">
-                    {micro.tasks.map((task) => {
-                      const done = task.userTasks[0]?.done ?? false;
-                      return (
-                        <li
-                          key={task.id}
-                          className="flex items-center gap-2 p-2 rounded-lg bg-gray-50"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={done}
-                            onChange={() => handleToggleTask(task.id)}
-                            className="h-4 w-4"
-                          />
-                          <span
-                            className={
-                              done
-                                ? "line-through text-gray-500"
-                                : "text-gray-700"
-                            }
-                          >
-                            {task.title}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+                  <AccordionContent>
+                    {micro.tasks.length === 0 ? (
+                      <div className="text-sm text-gray-400 italic pl-4 py-2">
+                        ✨ No tasks yet {isCloned ? "" : "— add one now!"}
+                      </div>
+                    ) : (
+                      <ul className="space-y-2 mt-3 pl-4">
+                        {micro.tasks.map((task) => {
+                          const done = task.userTasks[0]?.done ?? false;
+                          return (
+                            <li
+                              key={task.id}
+                              className="flex items-center gap-2 p-2 rounded-lg bg-gray-50"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={done}
+                                onChange={() =>
+                                  handleToggleTask(task.id, micro.id)
+                                }
+                                className="h-4 w-4"
+                              />
+                              <span
+                                className={
+                                  done
+                                    ? "line-through text-gray-500"
+                                    : "text-gray-700"
+                                }
+                              >
+                                {task.title}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
         </CardContent>
       </Card>
       {editMode && (
