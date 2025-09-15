@@ -37,14 +37,14 @@ const DeleteRoadmap = ({
           <Button
             variant="outline"
             onClick={() => close(false)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
           >
             <X className="w-4 h-4" /> Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={onDelete}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
           >
             {isCloned ? (
               <>

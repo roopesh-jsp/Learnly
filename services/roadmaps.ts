@@ -44,6 +44,10 @@ export async function getRoadmapDataWithId(
     const roadmap = await db.roadmap.findUnique({
       where: { id },
       include: {
+        owner: true,
+        _count: {
+          select: { clones: true },
+        },
         microtasks: {
           include: {
             tasks: true,
