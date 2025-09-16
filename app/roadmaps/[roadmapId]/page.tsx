@@ -100,7 +100,7 @@ const RoadMap = () => {
               <AccordionItem
                 key={microtask.id}
                 value={microtask.id}
-                className="rounded-xl border border-primary/20 bg-white/30 backdrop-blur-md shadow-sm overflow-hidden"
+                className="rounded-xl border border-primary/20 bg-white/10 backdrop-blur-md shadow-sm overflow-hidden"
               >
                 <AccordionTrigger className="font-semibold text-lg text-[var(--primary)] px-4 py-3 hover:bg-[var(--primary)]/10 transition">
                   {microtask.title}
@@ -110,7 +110,7 @@ const RoadMap = () => {
                     {microtask.tasks.map((task) => (
                       <li
                         key={task.id}
-                        className="text-sm text-gray-700 leading-relaxed hover:text-[var(--primary)] transition"
+                        className="text-sm text-gray-400 leading-relaxed hover:text-[var(--primary)] transition"
                       >
                         {task.title}
                       </li>

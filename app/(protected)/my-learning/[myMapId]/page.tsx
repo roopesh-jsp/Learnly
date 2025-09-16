@@ -300,7 +300,7 @@ const RoadMap = () => {
           <button
             onClick={() => setEditMode(!editMode)}
             className="flex items-center gap-2 px-4 py-2 rounded-full 
-                 bg-white/70 backdrop-blur-md border border-primary/20 
+                 bg-white/10 backdrop-blur-md border border-primary/20 
                  text-[var(--primary)] font-medium shadow-sm 
                  hover:bg-[var(--primary)] hover:text-white hover:shadow-lg 
                  transition-all cursor-pointer"
@@ -313,7 +313,7 @@ const RoadMap = () => {
         <button
           onClick={() => setDeleteMode(true)}
           className="flex items-center gap-2 px-4 py-2 rounded-full 
-               bg-white/70 backdrop-blur-md border border-red-200 
+               bg-white/10 backdrop-blur-md border border-red-200 
                text-red-600 font-medium shadow-sm 
                hover:bg-red-500 hover:text-white hover:shadow-lg 
                transition-all cursor-pointer"
@@ -482,7 +482,7 @@ const RoadMap = () => {
                               onClick={() =>
                                 handleToggleTask(task.id, micro.id)
                               }
-                              className="flex items-center cursor-pointer gap-3 my-3 p-3 w-[90%] rounded-lg bg-gray-50/70 hover:bg-gray-100 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition shadow-sm group"
+                              className="flex items-center cursor-pointer gap-3 my-3 p-3 w-[90%] rounded-lg bg-gray-500 hover:bg-gray-100 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition shadow-sm group"
                             >
                               {/* Round custom toggle */}
                               <button
