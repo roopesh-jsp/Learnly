@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Roadmap, Microtask, Task, UserTask } from "@prisma/client";
 import { checkIsCloned, getUserRoadMap } from "@/services/roadmaps";
 import { useSession } from "next-auth/react";
-import { Pencil, Trash } from "lucide-react";
+import { CirclePlus, Copy, Pencil, Trash, User } from "lucide-react";
 import EditProperties from "@/components/custom/EditProperties";
 import DeleteRoadmap from "@/components/custom/DeleteRoadmap";
 import ShimmerLoader from "@/components/custom/Shimer";
@@ -29,7 +29,16 @@ import { useRouter } from "next/navigation";
 
 type TaskWithStatus = Task & { userTasks: UserTask[] };
 type MicrotaskWithTasks = Microtask & { tasks: TaskWithStatus[] };
-type RoadmapWithData = Roadmap & { microtasks: MicrotaskWithTasks[] };
+type RoadmapWithData = Roadmap & {
+  microtasks: MicrotaskWithTasks[];
+  owner?: {
+    id: string;
+    name: string | null;
+  };
+  _count?: {
+    clones: number;
+  };
+};
 
 export type PropertiesData = {
   title: string;
@@ -317,7 +326,7 @@ const RoadMap = () => {
       {/* Roadmap Card */}
       <Card className="w-full max-w-5xl mt-14 mx-auto rounded-2xl shadow-lg border border-[var(--primary)]/20 bg-gradient-to-b from-primary/5 via-background to-background text-card-foreground relative">
         {isCloned && (
-          <div className="absolute top-0 right-0 w-24 text-center rounded-bl-2xl rounded-tr-2xl bg-amber-500 text-white text-xs font-semibold py-1 shadow-md">
+          <div className="absolute top-0 right-0 w-24 text-center rounded-bl-2xl rounded-tr-2xl bg-accent text-accent-foreground  text-xs font-semibold py-1 shadow-md">
             Cloned
           </div>
         )}
@@ -327,10 +336,19 @@ const RoadMap = () => {
           <CardTitle className="text-3xl font-bold text-[var(--primary)]">
             {roadmap.title}
           </CardTitle>
-          <CardDescription className="text-base text-muted-foreground">
+          <CardDescription className="text-base text-muted-foreground whitespace-pre-line break-words line-clamp-6 ">
             {roadmap.description}
           </CardDescription>
-
+          <div className="flex justify-center gap-6 mt-3 text-sm text-gray-500">
+            <span className="flex gap-2 items-center">
+              <User className="w-4 h-4 text-[var(--primary)]" />
+              Owner: {roadmap.owner?.name ?? "Unknown"}
+            </span>
+            <span className="flex gap-2 items-center">
+              <Copy className="w-4 h-4 text-accent" />
+              Clones: {roadmap._count?.clones ?? 0} users
+            </span>
+          </div>
           {/* Add Microtask button */}
           {!isCloned && (
             <div className="mt-4">
@@ -361,7 +379,7 @@ const RoadMap = () => {
                   className="border-[var(--primary)] text-[var(--primary)]"
                   onClick={() => setAddingMicro(true)}
                 >
-                  + Add Microtask
+                  <CirclePlus /> add a Task
                 </Button>
               )}
             </div>
@@ -432,14 +450,16 @@ const RoadMap = () => {
                             onClick={() =>
                               setTaskInputs({ ...taskInputs, [micro.id]: "" })
                             }
+                            className="cursor-pointer"
                           >
-                            + Add Task
+                            <CirclePlus className="w-4 h-4" />
                           </Button>
                         )}
                         <Button
                           size="sm"
                           variant="destructive"
                           onClick={() => handleDeleteMicrotask(micro.id)}
+                          className="cursor-pointer"
                         >
                           <Trash className="w-4 h-4" />
                         </Button>
@@ -462,16 +482,12 @@ const RoadMap = () => {
                               onClick={() =>
                                 handleToggleTask(task.id, micro.id)
                               }
-                              className="flex items-center gap-3 my-5 p-3 cursor-pointer rounded-lg bg-gray-50/70 hover:bg-gray-100 transition shadow-sm"
+                              className="flex items-center cursor-pointer gap-3 my-3 p-3 w-[90%] rounded-lg bg-gray-50/70 hover:bg-gray-100 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition shadow-sm group"
                             >
                               {/* Round custom toggle */}
                               <button
-                                className={`w-5 h-5 flex items-center justify-center rounded-full border transition
-                          ${
-                            done
-                              ? "bg-green-500 border-green-500"
-                              : "border-gray-400 bg-white"
-                          }`}
+                                className={`mt-1 w-5 h-5 flex items-center justify-center rounded-full border transition
+      ${done ? "bg-green-500 border-green-500" : "border-gray-400 bg-white"}`}
                               >
                                 {done && (
                                   <svg
@@ -488,23 +504,24 @@ const RoadMap = () => {
 
                               {/* Task text */}
                               <span
-                                className={`text-sm font-medium${
-                                  done
-                                    ? "line-through text-gray-400"
-                                    : "text-gray-700"
-                                }`}
+                                className={`text-sm font-medium whitespace-pre-line break-words line-clamp-6  flex-1
+      ${
+        done ? "line-through text-gray-400" : "text-gray-700 dark:text-gray-200"
+      }`}
                               >
                                 {task.title}
                               </span>
 
+                              {/* Delete button (separate cursor & better hover) */}
                               {!isCloned && (
                                 <Button
-                                  size="sm"
+                                  size="icon"
                                   variant="ghost"
-                                  className="text-red-500 ml-auto hover:bg-red-100 rounded-full"
-                                  onClick={() =>
-                                    handleDeleteTask(task.id, micro.id)
-                                  }
+                                  className="ml-auto text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 cursor-pointer rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // prevent toggle click
+                                    handleDeleteTask(task.id, micro.id);
+                                  }}
                                 >
                                   <Trash className="w-4 h-4" />
                                 </Button>

@@ -13,6 +13,15 @@ import { useSession } from "next-auth/react";
 import { getUserRoadMaps } from "@/services/roadmaps";
 import { Roadmap as RoadMapType } from "@prisma/client";
 import ShimmerLoader from "@/components/custom/Shimer";
+import {
+  CircleCheckIcon,
+  Copy,
+  Crosshair,
+  MousePointer,
+  MousePointer2,
+  MousePointer2Icon,
+  MousePointerBanIcon,
+} from "lucide-react";
 
 type ExtendedRoadMap = RoadMapType & { isCloned?: boolean };
 
@@ -21,67 +30,79 @@ export default function Roadmap() {
   const [roadMaps, setRoadMaps] = useState<ExtendedRoadMap[]>([]);
   const [loading, setLoading] = useState(false);
   const user = useSession();
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        if (user.data?.user?.id) {
-          const data = await getUserRoadMaps(user.data?.user?.id);
-          setRoadMaps(data);
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
+  const fetchRoadmaps = async () => {
+    try {
+      setLoading(true);
+      if (user.data?.user?.id) {
+        const data = await getUserRoadMaps(user.data?.user?.id);
+        setRoadMaps(data);
       }
-    })();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchRoadmaps();
   }, [user.data?.user?.id]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-8 text-primary">
-        Developer & Designer Roadmap
-      </h1>
-      <Button onClick={() => setIsAddFormOpen(true)}>Add a Roadmap</Button>
+    <div className="container mx-auto px-4 py-12">
+      {/* Page Heading */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold mb-4 text-primary">Your Roadmaps</h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+          Manage your personal and cloned roadmaps. Create new learning paths or
+          continue where you left off.
+        </p>
 
+        {/* Add Roadmap Button */}
+        <Button onClick={() => setIsAddFormOpen(true)}>+ Add Roadmap</Button>
+      </div>
+
+      {/* Roadmaps Grid */}
       {loading ? (
         <ShimmerLoader />
       ) : (
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {roadMaps.map((role) => {
             const isCloned = role.isCloned === true;
 
             return (
               <Link key={role.id} href={`/my-learning/${role.id}`}>
-                <div className="relative ">
-                  {/* Ribbon for cloned */}
+                <div className="relative">
+                  {/* Cloned Ribbon */}
                   {isCloned && (
-                    <div className="absolute top-0 right-0 w-20 text-center rounded-bl-2xl rounded-tr-2xl   bg-amber-500 text-white text-xs font-bold py-1 shadow-md">
+                    <div className="absolute top-0 right-0 px-3 py-1 rounded-bl-xl rounded-tr-xl bg-accent text-accent-foreground text-xs font-medium shadow-sm">
+                      <Copy className="w-3 h-3 inline-block mr-1" />
                       Cloned
                     </div>
                   )}
 
                   <Card
-                    className={`rounded-2xl shadow-md transition cursor-pointer border 
-                    ${
-                      isCloned
-                        ? "border-amber-400/40 hover:border-amber-500 hover:shadow-amber-200"
-                        : "border-primary/20 hover:border-primary hover:shadow-primary/30"
-                    }`}
+                    className={`h-[170px] flex flex-col justify-between rounded-xl border bg-card shadow-sm hover:shadow-lg transition cursor-pointer
+        ${
+          isCloned
+            ? "border-accent/40 hover:border-accent"
+            : "border-border hover:border-primary"
+        }`}
                   >
-                    <CardHeader className="flex flex-row items-center gap-3">
-                      <div>
-                        <CardTitle
-                          className={`text-xl ${
-                            isCloned ? "text-amber-700" : "text-primary"
-                          }`}
-                        >
-                          {role.title}
-                        </CardTitle>
-                        <CardDescription>{role.description}</CardDescription>
-                      </div>
+                    <CardHeader className="space-y-2">
+                      <CardTitle
+                        className={`text-lg font-semibold truncate ${
+                          isCloned ? "text-accent" : "text-foreground"
+                        }`}
+                      >
+                        {role.title}
+                      </CardTitle>
+                      <CardDescription className=" text-muted-foreground whitespace-pre-line break-words  line-clamp-3">
+                        {role.description}
+                      </CardDescription>
                     </CardHeader>
+                    <div className="absolute bottom-3 right-3 flex gap-1 text-xs items-center font-extralight opacity-50 ">
+                      <Crosshair size={15} /> click
+                    </div>
                   </Card>
                 </div>
               </Link>
@@ -91,7 +112,11 @@ export default function Roadmap() {
       )}
 
       {isAddFormOpen && (
-        <AddRoadmap isOpen={isAddFormOpen} close={setIsAddFormOpen} />
+        <AddRoadmap
+          isOpen={isAddFormOpen}
+          fetchRoadmaps={fetchRoadmaps}
+          close={setIsAddFormOpen}
+        />
       )}
     </div>
   );

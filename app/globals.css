@@ -64,7 +64,7 @@
   --muted: #f3f4f6;
   --muted-foreground: #6b7280;
 
-  --accent: #0ea5e9; /* sky-500 */
+  --accent: #182d77; /* sky-400 (softer for light mode) */
   --accent-foreground: #ffffff;
 
   --destructive: #ef4444; /* red-500 */
@@ -109,8 +109,8 @@
   --muted: #334155;
   --muted-foreground: #94a3b8;
 
-  --accent: #22d3ee; /* cyan-400 */
-  --accent-foreground: #0f172a;
+  --accent: #6d84e8; /* cyan-500 (darker but still vibrant for dark mode) */
+  --accent-foreground: #ffffff;
 
   --destructive: #f87171; /* red-400 */
   --destructive-foreground: #0f172a;

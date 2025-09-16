@@ -118,6 +118,10 @@ export async function getUserRoadMap(
         ],
       },
       include: {
+        owner: true,
+        _count: {
+          select: { clones: true },
+        },
         microtasks: {
           include: {
             tasks: {
