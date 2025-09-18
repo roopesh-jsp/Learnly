@@ -28,6 +28,12 @@ By integrating **Gemini AI**, Learnly provides a unique, data-driven approach to
 - **Gamified Motivation**  
   A built-in badge system rewards you for milestones and streaks, adding a fun, gamified element to your learning journey and keeping you engaged.
 
+- **Goal-Specific Quizzes** 📝  
+  Automatically generate interactive quizzes tailored to your learning goals for better practice and self-assessment.
+
+- **Printable Worksheets** 📄  
+  Download structured, printable worksheets that help reinforce concepts and enable offline practice.
+
 ---
 
 ## 🛠️ Technology Stack
@@ -37,7 +43,7 @@ Learnly is built using the **MERN stack**, with a focus on creating a robust and
 - **Frontend**: Next.js + React.js → fast and interactive user interface.
 - **Backend**: Node.js + Express → handles user authentication, goal management, and API integrations.
 - **Database**: MongoDB → stores user data, including goals, progress, and reports.
-- **AI**: Gemini AI → drives intelligent goal generation and progress summary features.
+- **AI**: Gemini AI → drives intelligent goal generation, quizzes, and progress summary features.
 
 ---
 
