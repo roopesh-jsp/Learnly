@@ -43,6 +43,12 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+@layer base {
+  img {
+    display: initial;
+  }
+}
+
 :root {
   --radius: 0.625rem;
 
