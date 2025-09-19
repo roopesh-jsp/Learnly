@@ -21,11 +21,21 @@ import { Separator } from "@/components/ui/separator";
 import { Roadmap, Microtask, Task, UserTask } from "@prisma/client";
 import { checkIsCloned, getUserRoadMap } from "@/services/roadmaps";
 import { useSession } from "next-auth/react";
-import { CirclePlus, Copy, Pencil, Trash, User } from "lucide-react";
+import {
+  CirclePlus,
+  Copy,
+  Download,
+  Pencil,
+  Sparkle,
+  Trash,
+  User,
+} from "lucide-react";
 import EditProperties from "@/components/custom/EditProperties";
 import DeleteRoadmap from "@/components/custom/DeleteRoadmap";
 import ShimmerLoader from "@/components/custom/Shimer";
 import { useRouter } from "next/navigation";
+import RoadmapPdfTemplate from "@/components/custom/pdfTemplate";
+import { usePDF } from "react-to-pdf";
 
 type TaskWithStatus = Task & { userTasks: UserTask[] };
 type MicrotaskWithTasks = Microtask & { tasks: TaskWithStatus[] };
@@ -50,6 +60,12 @@ const RoadMap = () => {
   const params = useParams<{ myMapId: string }>();
   const roadmapId = params.myMapId;
   const session = useSession();
+  const { toPDF, targetRef } = usePDF({
+    filename: "roadmap.pdf",
+    page: {
+      margin: 10,
+    },
+  });
 
   const [roadmap, setRoadmap] = useState<RoadmapWithData | null>(null);
   const [isCloned, setIsCloned] = useState(false);
@@ -539,6 +555,27 @@ const RoadMap = () => {
         </CardContent>
       </Card>
 
+      {/* action buttons  */}
+
+      <div className="flex w-full items-center justify-center gap-4 mt-6">
+        <Button
+          size="lg"
+          className="flex items-center gap-1 shadow-md hover:shadow-lg cursor-pointer"
+        >
+          <Sparkle className="h-5 w-5  " />
+          Quiz
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          className="flex items-center gap-1 shadow-md hover:shadow-lg cursor-pointer"
+          onClick={() => toPDF()}
+        >
+          <Download className="h-5 w-5" />
+          Worksheet
+        </Button>
+      </div>
+
       {/* Modals */}
       {editMode && (
         <EditProperties
@@ -560,6 +597,13 @@ const RoadMap = () => {
           isCloned={isCloned}
         />
       )}
+
+      {/* pdf template  */}
+      <div className="absolute top-0 left-0 -translate-x-[9999px] w-screen">
+        <div ref={targetRef} className="w-full bg-white p-6">
+          <RoadmapPdfTemplate roadmap={roadmap} isCloned={isCloned} />
+        </div>
+      </div>
     </div>
   );
 };

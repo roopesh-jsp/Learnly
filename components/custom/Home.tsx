@@ -2,7 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, BarChart3, Trophy, CalendarDays } from "lucide-react";
+import {
+  BookOpen,
+  BarChart3,
+  Trophy,
+  CalendarDays,
+  Download,
+  HelpCircle,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function Hero() {
@@ -18,8 +25,9 @@ export function Hero() {
           </h1>
           <p className="text-md md:text-lg text-muted-foreground max-w-2xl mb-8">
             Create, share, and clone learning roadmaps. Stay updated with owner
-            changes, collaborate with groups, and leverage AI to design your
-            personalized learning journey.
+            changes, collaborate with groups, generate quizzes, download
+            worksheets, and leverage AI to design your personalized learning
+            journey.
           </p>
           <div className="flex gap-4 flex-col sm:flex-row">
             <Button size="lg" onClick={() => router.push("/roadmaps")}>
@@ -36,9 +44,9 @@ export function Hero() {
           Why Choose Learnly?
         </h1>
 
-        <section className="pt-10 pb-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <section className="pt-10 pb-16 flex flex-wrap justify-center gap-8">
           {/* Feature 1 */}
-          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition">
+          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition flex-1 min-w-[280px] max-w-[350px]">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <BookOpen className="h-12 w-12 text-primary mb-4" />
               <h3 className="text-xl font-semibold mb-2">Create & Share</h3>
@@ -50,7 +58,7 @@ export function Hero() {
           </Card>
 
           {/* Feature 2 */}
-          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition">
+          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition flex-1 min-w-[280px] max-w-[350px]">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <BarChart3 className="h-12 w-12 text-primary mb-4" />
               <h3 className="text-xl font-semibold mb-2">
@@ -64,7 +72,7 @@ export function Hero() {
           </Card>
 
           {/* Feature 3 */}
-          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition">
+          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition flex-1 min-w-[280px] max-w-[350px]">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <CalendarDays className="h-12 w-12 text-primary mb-4" />
               <h3 className="text-xl font-semibold mb-2">
@@ -78,7 +86,7 @@ export function Hero() {
           </Card>
 
           {/* Feature 4 */}
-          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition">
+          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition flex-1 min-w-[280px] max-w-[350px]">
             <CardContent className="p-6 flex flex-col items-center text-center">
               <Trophy className="h-12 w-12 text-primary mb-4" />
               <h3 className="text-xl font-semibold mb-2">
@@ -87,6 +95,34 @@ export function Hero() {
               <p className="text-sm text-muted-foreground">
                 Collaborate with peers, monitor progress, and stay motivated
                 with collective learning.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Feature 5 - Goal-specific Quizzes */}
+          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition flex-1 min-w-[280px] max-w-[350px]">
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <HelpCircle className="h-12 w-12 text-primary mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Interactive Quizzes
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Generate goal-specific quizzes for smarter, interactive learning
+                and self-assessment.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Feature 6 - Download Worksheets */}
+          <Card className="rounded-2xl shadow-sm hover:shadow-lg transition flex-1 min-w-[280px] max-w-[350px]">
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <Download className="h-12 w-12 text-primary mb-4" />
+              <h3 className="text-xl font-semibold mb-2">
+                Printable Worksheets
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Download structured worksheets for offline practice and
+                revision.
               </p>
             </CardContent>
           </Card>
