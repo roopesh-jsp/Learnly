@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Clock, CheckCircle, XCircle, Award, RotateCcw } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  Award,
+  RotateCcw,
+  StepBack,
+  ArrowLeft,
+} from "lucide-react";
+import { useParams, usePathname, useRouter } from "next/navigation";
 
 interface QuizProps {
   questions: {
@@ -32,11 +41,14 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
   const [totalScore, setTotalScore] = useState(0);
 
+  const router = useRouter();
+  const { myMapId } = useParams() as { myMapId: string };
+
   // Get limited questions based on numQuestions
   const quizQuestions = questions.questions.slice(0, numQuestions);
   const currentQuestion = quizQuestions[currentQuestionIndex];
 
-  //   Timer effect
+  // Timer effect
   useEffect(() => {
     if (timeLeft > 0 && !isQuizCompleted) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -107,7 +119,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
   // Results UI
   if (isQuizCompleted) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center p-4 relative bottom-10">
+      <div className="min-h-screen w-full flex items-center justify-center md:p-4 relative bottom-10">
         <div className=" w-full max-w-6xl ">
           {/* Header */}
           <div className="text-center mb-8">
@@ -160,7 +172,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
                   className="bg-secondary/20 rounded-lg p-6 border border-border"
                 >
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                    <div className="hidden flex-shrink-0 w-8 h-8 bg-primary rounded-full md:flex items-center justify-center text-primary-foreground font-semibold text-sm">
                       {index + 1}
                     </div>
                     <div className="flex-1">
@@ -201,7 +213,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
                           );
                         })}
                       </div>
-                      <div className="mt-3 flex items-center gap-4">
+                      <div className="mt-3 flex flex-col md:flex-row items-center gap-2 md:gap-4">
                         <span
                           className={`font-semibold ${getScoreColor(
                             userAnswer.score
@@ -225,13 +237,22 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
           </div>
 
           {/* Restart Button */}
-          <div className="text-center">
+          <div className="text-center flex items-center gap-3 w-fit mx-auto">
             <button
               onClick={restartQuiz}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors"
+              className="inline-flex cursor-pointer items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors"
             >
               <RotateCcw className="w-5 h-5" />
               Restart Quiz
+            </button>
+            <button
+              onClick={() => {
+                router.push(`/my-learning/${myMapId}`);
+              }}
+              className="inline-flex cursor-pointer items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Back
             </button>
           </div>
         </div>
@@ -241,23 +262,25 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
 
   // Quiz UI
   return (
-    <div className="min-h-screen w-full  flex items-center justify-center p-4 relative bottom-20">
+    <div className="min-h-screen w-full  flex items-center justify-center md:p-4 relative bottom-10 md:bottom-20">
       <div className="bg-background rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-border">
         {/* Header with progress */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h2 className="text-xl font-semibold text-foreground">
+              <h2 className="text-md md:text-lg xl:text-xl font-semibold text-foreground">
                 Question {currentQuestionIndex + 1} of {quizQuestions.length}
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Current Score: {totalScore} points
               </p>
             </div>
             <div className="text-right">
               <div className="flex items-center gap-2 text-primary">
                 <Clock className="w-5 h-5" />
-                <span className="text-2xl font-bold">{timeLeft}s</span>
+                <span className="text-lg md:text-xl xl:text-2xl font-bold">
+                  {timeLeft}s
+                </span>
               </div>
             </div>
           </div>
@@ -277,7 +300,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
 
         {/* Question */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground mb-6">
+          <h1 className="text-lg md:text-xl xl:text-2xl font-bold text-foreground mb-6">
             {currentQuestion.question}
           </h1>
 
@@ -304,7 +327,9 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
                       <div className="w-3 h-3 rounded-full bg-primary"></div>
                     )}
                   </div>
-                  <span className="font-medium">{option}</span>
+                  <span className="font-medium text-sm md:text-md xl:text-xl">
+                    {option}
+                  </span>
                 </div>
               </button>
             ))}
@@ -313,23 +338,33 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
 
         {/* Submit button */}
         <div className="text-center">
-          <button
-            onClick={handleAnswerSubmit}
-            disabled={selectedOption === null}
-            className={`px-8 py-3 rounded-xl font-semibold transition-all ${
-              selectedOption !== null
-                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            }`}
-          >
-            {currentQuestionIndex + 1 === quizQuestions.length
-              ? "Finish Quiz"
-              : "Next Question"}
-          </button>
+          <div className="flex items-center flex-col md:flex-row gap-3 mx-auto w-fit">
+            <button
+              onClick={handleAnswerSubmit}
+              disabled={selectedOption === null}
+              className={`px-8 py-3 rounded-xl font-semibold transition-all ${
+                selectedOption !== null
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+              }`}
+            >
+              {currentQuestionIndex + 1 === quizQuestions.length
+                ? "Finish Quiz"
+                : "Next Question"}
+            </button>
+            <button
+              onClick={handleAnswerSubmit}
+              className={`px-8 py-3 rounded-xl font-semibold transition-all ${"bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"}`}
+            >
+              {currentQuestionIndex + 1 === quizQuestions.length
+                ? "skip & Finish"
+                : "skip"}
+            </button>
+          </div>
 
           <p className="text-sm text-muted-foreground mt-3">
             {selectedOption === null
-              ? "Select an answer or wait for time to run out"
+              ? "Select an answer"
               : "Click to submit your answer"}
           </p>
         </div>

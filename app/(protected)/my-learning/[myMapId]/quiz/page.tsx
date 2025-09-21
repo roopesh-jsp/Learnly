@@ -1,9 +1,17 @@
 "use client";
 import { getRoadmapDataWithId, RoadmapWithData } from "@/services/roadmaps";
 import { Roadmap } from "@prisma/client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Play, Clock, Target, BookOpen, AlertCircle } from "lucide-react";
+import {
+  Play,
+  Clock,
+  Target,
+  BookOpen,
+  AlertCircle,
+  StepBack,
+  ArrowLeft,
+} from "lucide-react";
 import Quiz from "./components/Quiz";
 export const roadmapQuiz = {
   roadmapId: "48095c5a-07ea-4764-83ce-d58806699258",
@@ -88,6 +96,7 @@ const QuizPage = () => {
   const [timePerQuestion, setTimePerQuestion] = useState(20);
   const [difficulty, setDifficulty] = useState("medium");
   const [startQuiz, setStartQuiz] = useState(false);
+  const router = useRouter();
 
   const handleStartQuiz = () => {
     console.log("Starting quiz with:", {
@@ -108,7 +117,7 @@ const QuizPage = () => {
     fetchData();
   }, [myMapId]);
   return (
-    <div className="min-h-screen w-full max-w-7xl mx-auto flex items-center justify-center p-4">
+    <div className="min-h-screen w-full  max-w-7xl mx-auto flex items-center justify-center md:p-4">
       {startQuiz ? (
         <Quiz
           questions={roadmapQuiz}
@@ -118,6 +127,14 @@ const QuizPage = () => {
       ) : (
         <div className="w-full max-w-2xl">
           {/* Header */}
+          <button
+            onClick={() => {
+              router.push(`/my-learning/${myMapId}`);
+            }}
+            className=" absolute cursor-pointer top-5 left-5 md:top-10 md:left-10 inline-flex items-center gap-2  px-3 py-2 md:px-6 md:py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
               <Target className="w-8 h-8 text-blue-600" />
@@ -131,7 +148,7 @@ const QuizPage = () => {
           </div>
 
           {/* Configuration Options */}
-          <div className="mb-8 flex items-start justify-center gap-10 xl:gap-20 flex-wrap">
+          <div className="my-14 flex items-start justify-center gap-12 xl:gap-20 flex-wrap">
             {/* Number of Questions */}
             <div className=" flex flex-col items-center justify-center gap-2">
               <div className="flex items-center gap-2">
