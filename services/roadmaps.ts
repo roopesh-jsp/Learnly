@@ -5,6 +5,8 @@ import { Roadmap as PrismaRoadmap, Prisma, Roadmap } from "@prisma/client";
 
 export type RoadmapWithData = Prisma.RoadmapGetPayload<{
   include: {
+    owner: true;
+    _count: { select: { clones: true } };
     microtasks: {
       include: {
         tasks: {
@@ -14,6 +16,14 @@ export type RoadmapWithData = Prisma.RoadmapGetPayload<{
         };
       };
     };
+  };
+}>;
+
+export type RoadmapOutline = Prisma.RoadmapGetPayload<{
+  include: {
+    owner: true;
+    _count: { select: { clones: true } };
+    microtasks: true;
   };
 }>;
 
@@ -50,7 +60,11 @@ export async function getRoadmapDataWithId(
         },
         microtasks: {
           include: {
-            tasks: true,
+            tasks: {
+              include: {
+                userTasks: true,
+              },
+            },
           },
         },
       },

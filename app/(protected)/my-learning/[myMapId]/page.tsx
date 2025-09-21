@@ -36,6 +36,7 @@ import ShimmerLoader from "@/components/custom/Shimer";
 import { useRouter } from "next/navigation";
 import RoadmapPdfTemplate from "@/components/custom/pdfTemplate";
 import { usePDF } from "react-to-pdf";
+import Link from "next/link";
 
 type TaskWithStatus = Task & { userTasks: UserTask[] };
 type MicrotaskWithTasks = Microtask & { tasks: TaskWithStatus[] };
@@ -84,8 +85,7 @@ const RoadMap = () => {
       const res = await getUserRoadMap(roadmapId);
       // setIsCloned(res?.ownerId !== session.data?.user?.id);
       // console.log(res?.ownerId, session.data?.user?.id);
-
-      setRoadmap(res);
+      if (res) setRoadmap(res);
     } catch (error) {
       console.log(error);
     } finally {
@@ -558,13 +558,15 @@ const RoadMap = () => {
       {/* action buttons  */}
 
       <div className="flex w-full items-center justify-center gap-4 mt-6">
-        <Button
-          size="lg"
-          className="flex items-center gap-1 shadow-md hover:shadow-lg cursor-pointer"
-        >
-          <Sparkle className="h-5 w-5  " />
-          Quiz
-        </Button>
+        <Link href={`${roadmapId}/quiz`}>
+          <Button
+            size="lg"
+            className="flex items-center gap-1 shadow-md hover:shadow-lg cursor-pointer"
+          >
+            <Sparkle className="h-5 w-5  " />
+            Quiz
+          </Button>
+        </Link>
         <Button
           size="lg"
           variant="outline"
