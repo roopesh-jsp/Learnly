@@ -126,6 +126,7 @@ const QuizPage = () => {
         />
       ) : (
         <div className="w-full max-w-2xl">
+          {JSON.stringify(roadmap)}
           {/* Header */}
           <button
             onClick={() => {
