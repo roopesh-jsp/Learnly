@@ -6,7 +6,6 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 // 1️⃣ Define schema for QuizProps
 const QuizSchema = z.object({
   questions: z.object({
-    roadmapId: z.string(),
     title: z.string(),
     description: z.string(),
     questions: z.array(
@@ -18,63 +17,107 @@ const QuizSchema = z.object({
       })
     ),
   }),
-  timePerQuestion: z.number(),
-  numQuestions: z.number(),
 });
 
+function extractRoadmapData(data: any) {
+  let result = `Roadmap: ${data.title}\n\n`;
+
+  data?.microtasks?.forEach((microtask: any, i: any) => {
+    result += `tasks ${i + 1}: ${microtask.title}\n`;
+
+    microtask?.tasks?.forEach((task: any, j: any) => {
+      result += `   - subtasks ${j + 1}: ${task.title}\n`;
+    });
+
+    result += "\n";
+  });
+
+  return result.trim();
+}
+const parser = StructuredOutputParser.fromZodSchema(QuizSchema);
 export async function POST(req: Request) {
   try {
-    const { roadmapText } = await req.json();
-    console.log("post req made");
+    const { roadmapText, noOfQuestions, difficulity } = await req.json();
+    console.log(roadmapText, noOfQuestions, difficulity);
 
-    // 2️⃣ Setup Gemini model
+    const roadmapData = extractRoadmapData(roadmapText);
+
+    if (
+      !roadmapData ||
+      roadmapData.length < 20 ||
+      !roadmapData.includes("tasks")
+    ) {
+      return NextResponse.json(
+        { error: "Invalid roadmap data. Cannot generate quiz." },
+        { status: 400 }
+      );
+    }
+
     const model = new ChatGoogleGenerativeAI({
       model: "gemini-2.5-flash",
       apiKey: process.env.GEMINI_API_KEY,
     });
 
-    // 3️⃣ Setup parser
-    const parser = StructuredOutputParser.fromZodSchema(QuizSchema);
-
-    // 4️⃣ Create prompt with format instructions
     const prompt = `
-You are a quiz generator AI. Generate a quiz based on the roadmap text below.
+You are a quiz generator.
 
-Roadmap:
-${roadmapText}
+I will give you roadmap data, and you must generate a quiz in strict JSON format that follows this schema:
 
-Return ONLY valid JSON that matches this schema:
-${parser.getFormatInstructions()}
+{
+  "questions": {
+    "title": string, // title of the quiz
+    "description": string, // short description of the quiz
+    "questions": [
+      {
+        "id": string, // unique id for the question
+        "question": string, // the quiz question
+        "options": string[], // multiple choice options
+        "correctAnswerIndex": number // index of correct option
+      }
+    ]
+  }
+}
 
-Do not include explanations, markdown, or code fences.
+Important:
+- Only return valid JSON.
+- Exactly ${noOfQuestions} questions must be generated.
+- The difficulty level of the questions should be "${difficulity}".
+- Each question should test knowledge of the roadmap content.
+- No extra explanation or text outside JSON.
+
+Roadmap Data:
+${roadmapData}
 `;
 
-    // 5️⃣ Call Gemini
     const res = await model.invoke(prompt);
-    console.log("response", res);
+    let rawContent =
+      typeof res.content === "string"
+        ? res.content
+        : JSON.stringify(res.content);
+    // Strip Markdown code fences ```json ... ```
+    rawContent = rawContent
+      .replace(/^```json\s*/, "")
+      .replace(/```$/, "")
+      .trim();
+    const parsedQuiz = await parser.parse(rawContent);
 
-    // 6️⃣ Parse output into structured data
-    let outputText = "";
-    if (typeof res.content[0] === "string") {
-      outputText = res.content[0];
-    } else if (Array.isArray(res.content[0])) {
-      const textPart = res.content[0].find((c: any) => c.type === "text");
-      outputText = textPart?.text || "";
-    } else {
-      outputText = res.content[0].toString();
+    console.log("response", parsedQuiz);
+
+    if (
+      !parsedQuiz?.questions?.questions ||
+      parsedQuiz.questions.questions.length === 0
+    ) {
+      return NextResponse.json(
+        {
+          error: "Quiz generation failed. Please provide better roadmap data.",
+        },
+        { status: 422 }
+      );
     }
 
-    outputText = outputText.replace(/```json|```/g, "").trim();
-    const quiz = await parser.parse(outputText);
-
-    console.log("quiz:", quiz);
-
-    return NextResponse.json(quiz);
+    return NextResponse.json(parsedQuiz);
   } catch (err: any) {
     console.error("Error generating quiz:", err);
-    return NextResponse.json(
-      { error: "Failed to generate quiz" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err?.message }, { status: 500 });
   }
 }

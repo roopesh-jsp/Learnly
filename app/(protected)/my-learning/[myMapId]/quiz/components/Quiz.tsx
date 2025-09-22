@@ -12,7 +12,6 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 
 interface QuizProps {
   questions: {
-    roadmapId: string;
     title: string;
     description: string;
     questions: {
@@ -176,7 +175,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
                       {index + 1}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-foreground mb-2">
+                      <h3 className="font-semibold text-foreground mb-4">
                         {question.question}
                       </h3>
                       <div className="space-y-2">
@@ -201,13 +200,15 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
                           return (
                             <div key={optionIndex} className={className}>
                               <div className="flex items-center gap-2">
-                                {isCorrect && (
-                                  <CheckCircle className="w-4 h-4" />
-                                )}
-                                {isUserSelected && !isCorrect && (
-                                  <XCircle className="w-4 h-4" />
-                                )}
-                                <span>{option}</span>
+                                <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+                                  {isCorrect && (
+                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                  )}
+                                  {isUserSelected && !isCorrect && (
+                                    <XCircle className="w-4 h-4 text-red-600" />
+                                  )}
+                                </div>
+                                <span className="break-words">{option}</span>
                               </div>
                             </div>
                           );
@@ -300,7 +301,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
 
         {/* Question */}
         <div className="mb-8">
-          <h1 className="text-lg md:text-xl xl:text-2xl font-bold text-foreground mb-6">
+          <h1 className="text-md md:text-lg  font-semibold  my-6 md:my-10">
             {currentQuestion.question}
           </h1>
 
@@ -309,7 +310,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
               <button
                 key={index}
                 onClick={() => handleOptionSelect(index)}
-                className={`w-full text-left p-4 rounded-lg border transition-all ${
+                className={`w-full text-left p-4 rounded-lg cursor-pointer hover:bg-stone-200 border transition-all ${
                   selectedOption === index
                     ? "bg-primary text-primary-foreground border-primary shadow-md"
                     : "bg-secondary text-secondary-foreground border-border hover:bg-secondary/80"
@@ -317,7 +318,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                    className={`w-6 h-6 flex-shrink-0 rounded-full border-2 flex items-center justify-center ${
                       selectedOption === index
                         ? "border-primary-foreground bg-primary-foreground"
                         : "border-muted-foreground"
@@ -327,7 +328,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
                       <div className="w-3 h-3 rounded-full bg-primary"></div>
                     )}
                   </div>
-                  <span className="font-medium text-sm md:text-md xl:text-xl">
+                  <span className="font-normal break-words text-sm md:text-md xl:text-lg">
                     {option}
                   </span>
                 </div>
@@ -342,7 +343,7 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
             <button
               onClick={handleAnswerSubmit}
               disabled={selectedOption === null}
-              className={`px-8 py-3 rounded-xl font-semibold transition-all ${
+              className={`flex-1 px-8 py-3 flex-shrink-0 rounded-xl font-semibold transition-all whitespace-nowrap ${
                 selectedOption !== null
                   ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
                   : "bg-muted text-muted-foreground cursor-not-allowed"
@@ -352,9 +353,10 @@ const Quiz = ({ questions, timePerQuestion, numQuestions }: QuizProps) => {
                 ? "Finish Quiz"
                 : "Next Question"}
             </button>
+
             <button
               onClick={handleAnswerSubmit}
-              className={`px-8 py-3 rounded-xl font-semibold transition-all ${"bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"}`}
+              className="flex-1 px-8 py-3 w-full md:w-fit rounded-xl whitespace-nowrap font-semibold transition-all bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
             >
               {currentQuestionIndex + 1 === quizQuestions.length
                 ? "skip & Finish"
