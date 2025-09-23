@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Dialog from "../wrappers/Dialog";
-import { Trash2, Loader2 } from "lucide-react";
+import {
+  Trash2,
+  Loader2,
+  Sparkle,
+  FileText,
+  WholeWord,
+  AlertTriangle,
+} from "lucide-react";
+import { resolve } from "path";
+import { cn } from "@/lib/utils";
 
 interface AddRoadmapProps {
   isOpen: boolean;
@@ -29,8 +38,12 @@ export default function AddRoadmap({
     }[],
   });
 
+  const [mode, setMode] = useState<"Manual" | "Ai">("Manual");
+  const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
+  const [promptErros, setPromptErros] = useState("");
 
   // Add microtask
   const handleAddMicrotask = () => {
@@ -127,159 +140,248 @@ export default function AddRoadmap({
     }
   };
 
+  const generateAi = async () => {
+    if (
+      prompt.length < 50 ||
+      prompt.trim().split(/\s+/).filter(Boolean).length < 10
+    ) {
+      setPromptErros("Need alteast 50 characters and 10 words ");
+      return;
+    }
+    setPromptErros("");
+    setIsGenerating(true);
+    console.log(prompt);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    setIsGenerating(false);
+    setMode("Manual");
+  };
+
   return (
     <Dialog isOpen={isOpen} close={close}>
-      <div className="w-[600px] max-w-full space-y-6">
-        <h1 className="text-3xl text-center font-bold text-primary tracking-tight">
-          Add a Roadmap
-        </h1>
+      {mode == "Ai" ? (
+        <div className="flex w-full max-w-lg flex-col items-center justify-center text-card-foreground ">
+          <h1 className="mb-6 text-3xl font-bold">Generate with AI</h1>
 
-        {/* Roadmap Title */}
-        <div>
-          <Input
-            placeholder="Roadmap title"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className={errors.title ? "border-red-500" : ""}
-          />
-          {errors.title && (
-            <p className="text-red-500 text-sm mt-1">{errors.title}</p>
-          )}
-        </div>
+          <div className="mb-4 w-full">
+            <Textarea
+              placeholder="Type your prompt here..."
+              className="min-h-[100px] resize-y"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+            />
+          </div>
 
-        {/* Roadmap Description */}
-        <div>
-          <Textarea
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className={errors.description ? "border-red-500" : ""}
-          />
-          {errors.description && (
-            <p className="text-red-500 text-sm mt-1">{errors.description}</p>
-          )}
-        </div>
-
-        {/* Add Microtask button */}
-        <div className="flex justify-end">
-          <Button type="button" variant="outline" onClick={handleAddMicrotask}>
-            + Add Microtask
-          </Button>
-        </div>
-
-        {/* Microtasks */}
-        <div className="space-y-4">
-          {form.microtasks.map((microtask, idx) => (
+          {/* Validation Requirements UI */}
+          <div className="mb-4 flex w-full items-center justify-end gap-6 text-sm">
             <div
-              key={microtask.id}
-              className="border rounded-xl p-4 bg-muted/30 shadow-sm space-y-3"
+              className={cn(
+                "flex items-center gap-2 transition-colors",
+                errors.charLength ? "text-destructive" : "text-emerald-500"
+              )}
             >
-              {/* Microtask Header */}
-              <div className="flex items-start gap-2 justify-between">
-                <div className="flex-1">
-                  <Input
-                    placeholder={`Microtask ${idx + 1}`}
-                    value={microtask.title}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        microtasks: form.microtasks.map((m) =>
-                          m.id === microtask.id
-                            ? { ...m, title: e.target.value }
-                            : m
-                        ),
-                      })
-                    }
-                    className={
-                      errors[`micro-${microtask.id}`] ? "border-red-500" : ""
-                    }
-                  />
-                  {errors[`micro-${microtask.id}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`micro-${microtask.id}`]}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => handleAddTask(microtask.id)}
-                  >
-                    + Add Task
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleDeleteMicrotask(microtask.id)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                  </Button>
-                </div>
-              </div>
+              <FileText className="h-4 w-4" />
+              <span className="font-medium">{prompt.length}</span>
+              <span className="text-muted-foreground">/ 50 Chars</span>
+            </div>
+            <div
+              className={cn(
+                "flex items-center gap-2 transition-colors",
+                errors.wordCount ? "text-destructive" : "text-emerald-500"
+              )}
+            >
+              <WholeWord className="h-4 w-4" />
+              <span className="font-medium">
+                {prompt.trim().split(/\s+/).filter(Boolean).length}
+              </span>
+              <span className="text-muted-foreground">/ 10 Words</span>
+            </div>
+          </div>
 
-              {/* Tasks */}
-              <div className="space-y-2 ml-6">
-                {microtask.tasks.map((task, tIdx) => (
-                  <div key={task.id} className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Input
-                        placeholder={`Task ${tIdx + 1}`}
-                        value={task.title}
-                        onChange={(e) =>
-                          setForm({
-                            ...form,
-                            microtasks: form.microtasks.map((m) =>
-                              m.id === microtask.id
-                                ? {
-                                    ...m,
-                                    tasks: m.tasks.map((t) =>
-                                      t.id === task.id
-                                        ? { ...t, title: e.target.value }
-                                        : t
-                                    ),
-                                  }
-                                : m
-                            ),
-                          })
-                        }
-                        className={
-                          errors[`task-${task.id}`] ? "border-red-500" : ""
-                        }
-                      />
-                      {errors[`task-${task.id}`] && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors[`task-${task.id}`]}
-                        </p>
-                      )}
-                    </div>
+          <Button
+            onClick={generateAi}
+            size="lg"
+            className="w-full sm:w-auto disabled:bg-stone-500 disabled:cursor-progress"
+            disabled={isGenerating}
+          >
+            <Sparkle />
+            {isGenerating ? "Generating ..." : "Generate"}
+          </Button>
+          <p className="mt-4 text-sm text-muted-foreground">
+            This will cost you 1 credit.
+          </p>
+          {/* Main Error Message */}
+          {promptErros && (
+            <div className="mt-2 flex items-center rounded-md border border-destructive/50 bg-destructive/10 p-2 text-sm text-destructive">
+              <AlertTriangle className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span>{promptErros}</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="w-[600px] max-w-full space-y-6">
+          <h1 className="text-3xl text-center font-bold text-primary tracking-tight">
+            Add a Roadmap
+          </h1>
+
+          {/* Roadmap Title */}
+          <div>
+            <Input
+              placeholder="Roadmap title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className={errors.title ? "border-red-500" : ""}
+            />
+            {errors.title && (
+              <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+            )}
+          </div>
+
+          {/* Roadmap Description */}
+          <div>
+            <Textarea
+              placeholder="Description"
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+              className={errors.description ? "border-red-500" : ""}
+            />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+            )}
+          </div>
+
+          {/* Add Microtask button */}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddMicrotask}
+            >
+              + Add Microtask
+            </Button>
+          </div>
+
+          {/* Microtasks */}
+          <div className="space-y-4">
+            {form.microtasks.map((microtask, idx) => (
+              <div
+                key={microtask.id}
+                className="border rounded-xl p-4 bg-muted/30 shadow-sm space-y-3"
+              >
+                {/* Microtask Header */}
+                <div className="flex items-start gap-2 justify-between">
+                  <div className="flex-1">
+                    <Input
+                      placeholder={`Microtask ${idx + 1}`}
+                      value={microtask.title}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          microtasks: form.microtasks.map((m) =>
+                            m.id === microtask.id
+                              ? { ...m, title: e.target.value }
+                              : m
+                          ),
+                        })
+                      }
+                      className={
+                        errors[`micro-${microtask.id}`] ? "border-red-500" : ""
+                      }
+                    />
+                    {errors[`micro-${microtask.id}`] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[`micro-${microtask.id}`]}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleAddTask(microtask.id)}
+                    >
+                      + Add Task
+                    </Button>
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => handleDeleteTask(microtask.id, task.id)}
+                      onClick={() => handleDeleteMicrotask(microtask.id)}
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </Button>
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+                </div>
 
-        {/* Submit Button */}
-        <Button className="w-full" onClick={handleSubmit} disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            "Submit Roadmap"
-          )}
-        </Button>
-      </div>
+                {/* Tasks */}
+                <div className="space-y-2 ml-6">
+                  {microtask.tasks.map((task, tIdx) => (
+                    <div key={task.id} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <Input
+                          placeholder={`Task ${tIdx + 1}`}
+                          value={task.title}
+                          onChange={(e) =>
+                            setForm({
+                              ...form,
+                              microtasks: form.microtasks.map((m) =>
+                                m.id === microtask.id
+                                  ? {
+                                      ...m,
+                                      tasks: m.tasks.map((t) =>
+                                        t.id === task.id
+                                          ? { ...t, title: e.target.value }
+                                          : t
+                                      ),
+                                    }
+                                  : m
+                              ),
+                            })
+                          }
+                          className={
+                            errors[`task-${task.id}`] ? "border-red-500" : ""
+                          }
+                        />
+                        {errors[`task-${task.id}`] && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors[`task-${task.id}`]}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDeleteTask(microtask.id, task.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* actions buttons  */}
+          <div className="flex gap-7 w-ful items-center justify-center">
+            {/* Submit Button */}
+            <Button className=" w-fit !px-9" onClick={() => setMode("Ai")}>
+              <Sparkle /> AI
+            </Button>
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Submit Roadmap"
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </Dialog>
   );
 }
