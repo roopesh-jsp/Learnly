@@ -309,9 +309,9 @@ const RoadMap = () => {
     );
 
   return (
-    <div className="w-full mt-20 min-h-screen p-6 relative ">
+    <div className="w-full mt-20 min-h-screen md:p-6   relative ">
       {/* Top action buttons */}
-      <div className="flex gap-3 absolute top-4 right-4">
+      <div className="flex gap-3 justify-center md:justify-end w-full  top-4 right-4">
         {!isCloned && (
           <button
             onClick={() => setEditMode(!editMode)}
@@ -340,7 +340,7 @@ const RoadMap = () => {
       </div>
 
       {/* Roadmap Card */}
-      <Card className="w-full max-w-5xl mt-14 mx-auto rounded-2xl shadow-lg border border-[var(--primary)]/20 bg-gradient-to-b from-primary/5 via-background to-background text-card-foreground relative">
+      <Card className="w-full max-w-5xl mt-5 border-none shadow-none !border-0 bg-transparent mx-auto md:rounded-2xl md:shadow-lg md:border md:border-[var(--primary)]/20 md:bg-gradient-to-b from-primary/5 via-background to-background text-card-foreground relative">
         {isCloned && (
           <div className="absolute top-0 right-0 w-24 text-center rounded-bl-2xl rounded-tr-2xl bg-accent text-accent-foreground  text-xs font-semibold py-1 shadow-md">
             Cloned
@@ -349,14 +349,14 @@ const RoadMap = () => {
 
         {/* Header */}
         <CardHeader className="text-center space-y-3 pb-6">
-          <CardTitle className="text-3xl font-bold text-[var(--primary)]">
+          <CardTitle className="md:text-3xl text-xl font-bold text-[var(--primary)]">
             {roadmap.title}
           </CardTitle>
-          <CardDescription className="text-base text-muted-foreground whitespace-pre-line break-words line-clamp-6 ">
+          <CardDescription className="text-sm md:text-base text-muted-foreground whitespace-pre-line break-words line-clamp-6 ">
             {roadmap.description}
           </CardDescription>
-          <div className="flex justify-center gap-6 mt-3 text-sm text-gray-500">
-            <span className="flex gap-2 items-center">
+          <div className="flex justify-center items-center` flex-col md:flex-row  gap-6 mt-3 text-sm text-gray-500">
+            <span className="flex gap-2 items-center text-sm">
               <User className="w-4 h-4 text-[var(--primary)]" />
               Owner: {roadmap.owner?.name ?? "Unknown"}
             </span>
@@ -367,24 +367,25 @@ const RoadMap = () => {
           </div>
           {/* Add Microtask button */}
           {!isCloned && (
-            <div className="mt-4">
+            <div className="mt-4 ">
               {addingMicro ? (
-                <div className="flex gap-2 justify-center">
+                <div className="flex gap-4 md:gap-2 items-center justify-center flex-col md:flex-row">
                   <Input
                     value={newMicroTitle}
                     onChange={(e) => setNewMicroTitle(e.target.value)}
                     placeholder="New microtask"
-                    className="w-56"
+                    className="md:w-56  w-full "
                   />
                   <Button
                     onClick={handleAddMicrotask}
-                    className="bg-[var(--primary)]"
+                    className="bg-[var(--primary)] w-full md:w-fit"
                   >
                     Save
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setAddingMicro(false)}
+                    className="w-full md:w-fit"
                   >
                     Cancel
                   </Button>
@@ -403,7 +404,7 @@ const RoadMap = () => {
         </CardHeader>
 
         {/* Content */}
-        <CardContent className="mt-4 space-y-6">
+        <CardContent className=" space-y-6">
           {roadmap.microtasks.length === 0 ? (
             <div className="text-center text-muted-foreground italic py-10">
               🚀 Nothing here yet...{" "}
@@ -417,18 +418,18 @@ const RoadMap = () => {
                 <AccordionItem
                   key={micro.id}
                   value={micro.id}
-                  className="rounded-xl border border-border bg-card/60 shadow-sm overflow-hidden"
+                  className="md:rounded-xl rounded-md border border-border bg-card/60 shadow-sm overflow-hidden"
                 >
-                  <div className="relative">
-                    <AccordionTrigger className="font-semibold text-lg text-[var(--primary)] px-4 py-3 hover:bg-[var(--primary)]/5 hover:no-underline transition">
+                  <div className="relative flex items-center justify-between pr-3">
+                    <AccordionTrigger className="font-semibold text-sm md:text-lg [&>svg]:hidden whitespace-normal text-[var(--primary)] px-4 py-3 hover:bg-[var(--primary)]/5 hover:no-underline transition">
                       {micro.title}
                     </AccordionTrigger>
 
-                    {/* Task buttons */}
+                    {/* Task buttons - Desktop only */}
                     {!isCloned && (
-                      <div className="absolute top-2 right-3 flex gap-2">
+                      <div className="hidden md:flex flex-row items-center py-2 gap-3">
                         {taskInputs[micro.id] !== undefined ? (
-                          <>
+                          <div className="flex flex-row py-2 gap-3">
                             <Input
                               value={taskInputs[micro.id] || ""}
                               onChange={(e) =>
@@ -458,7 +459,7 @@ const RoadMap = () => {
                             >
                               Cancel
                             </Button>
-                          </>
+                          </div>
                         ) : (
                           <Button
                             size="sm"
@@ -468,7 +469,7 @@ const RoadMap = () => {
                             }
                             className="cursor-pointer"
                           >
-                            <CirclePlus className="w-4 h-4" />
+                            <CirclePlus className="w-2 h-2" />
                           </Button>
                         )}
                         <Button
@@ -477,19 +478,85 @@ const RoadMap = () => {
                           onClick={() => handleDeleteMicrotask(micro.id)}
                           className="cursor-pointer"
                         >
-                          <Trash className="w-4 h-4" />
+                          <Trash className="w-2 h-2" />
                         </Button>
                       </div>
                     )}
                   </div>
 
                   <AccordionContent>
+                    {/* Mobile Task buttons - Above tasks */}
+                    {!isCloned && (
+                      <div className="md:hidden px-6 py-3 border-b border-gray-200 dark:border-gray-700">
+                        {taskInputs[micro.id] !== undefined ? (
+                          <div className="flex flex-col gap-3">
+                            <Input
+                              value={taskInputs[micro.id] || ""}
+                              onChange={(e) =>
+                                setTaskInputs({
+                                  ...taskInputs,
+                                  [micro.id]: e.target.value,
+                                })
+                              }
+                              placeholder="New task"
+                              className="w-full"
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleAddTask(micro.id)}
+                                className="flex-1"
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  setTaskInputs({
+                                    ...taskInputs,
+                                    [micro.id]: undefined,
+                                  })
+                                }
+                                className="flex-1"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                setTaskInputs({ ...taskInputs, [micro.id]: "" })
+                              }
+                              className="cursor-pointer flex-1 flex items-center justify-center gap-2"
+                            >
+                              <CirclePlus className="w-4 h-4" />
+                              Add Task
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteMicrotask(micro.id)}
+                              className="cursor-pointer flex items-center justify-center gap-2 px-4"
+                            >
+                              <Trash className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Tasks */}
                     {micro.tasks.length === 0 ? (
-                      <div className="text-sm text-gray-400 italic pl-6 py-3">
+                      <div className="text-sm text-gray-400 w-full italic md:pl-6 py-3">
                         ✨ No tasks yet {isCloned ? "" : "— add one now!"}
                       </div>
                     ) : (
-                      <ul className="space-y-2 mt-3 pl-6">
+                      <ul className="space-y-2 w-full mt-3 p-2  md:pl-6">
                         {micro.tasks.map((task) => {
                           const done = task.userTasks[0]?.done ?? false;
                           return (
@@ -498,12 +565,12 @@ const RoadMap = () => {
                               onClick={() =>
                                 handleToggleTask(task.id, micro.id)
                               }
-                              className="flex items-center cursor-pointer gap-3 my-3 p-3 w-[90%] rounded-lg bg-gray-500 hover:bg-gray-100 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition shadow-sm group"
+                              className="flex items-center w-full cursor-pointer gap-3 my-3 p-3 md:w-[90%] rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition shadow-sm group"
                             >
                               {/* Round custom toggle */}
                               <button
                                 className={`mt-1 w-5 h-5 flex items-center justify-center rounded-full border transition
-      ${done ? "bg-green-500 border-green-500" : "border-gray-400 bg-white"}`}
+${done ? "bg-green-500 border-green-500" : "border-gray-400 bg-white"}`}
                               >
                                 {done && (
                                   <svg
@@ -520,10 +587,8 @@ const RoadMap = () => {
 
                               {/* Task text */}
                               <span
-                                className={`text-sm font-medium whitespace-pre-line break-words line-clamp-6  flex-1
-      ${
-        done ? "line-through text-gray-400" : "text-gray-700 dark:text-gray-200"
-      }`}
+                                className={`text-xs md:text-sm font-medium whitespace-pre-line break-words line-clamp-6  flex-1
+${done ? "line-through text-gray-400" : "text-gray-700 dark:text-gray-200"}`}
                               >
                                 {task.title}
                               </span>

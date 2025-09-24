@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <Navbar />
-          <main className=" mt-[65px] max-w-6xl mx-auto px-6">{children}</main>
+          <main className=" mt-[65px] max-w-6xl mx-auto">{children}</main>
         </SessionProvider>
         <Footer />
       </body>
