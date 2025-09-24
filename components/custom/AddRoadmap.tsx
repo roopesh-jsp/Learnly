@@ -45,6 +45,41 @@ export default function AddRoadmap({
   const [loading, setLoading] = useState(false);
   const [promptErros, setPromptErros] = useState("");
 
+  const generateAi = async () => {
+    if (
+      prompt.length < 50 ||
+      prompt.trim().split(/\s+/).filter(Boolean).length < 10
+    ) {
+      setPromptErros("Need alteast 50 characters and 10 words ");
+      return;
+    }
+    setPromptErros("");
+    setIsGenerating(true);
+    try {
+      const res = await fetch("http://localhost:3000/api/roadmaps/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to generate roadmap");
+      }
+      const data = await res.json();
+      console.log(data);
+      setForm(data);
+      setMode("Manual");
+    } catch (error) {
+      console.log("error on getting the roadmap by prompt", error);
+    } finally {
+      setIsGenerating(false);
+    }
+    console.log(prompt);
+  };
+
   // Add microtask
   const handleAddMicrotask = () => {
     setForm((prev) => ({
@@ -138,22 +173,6 @@ export default function AddRoadmap({
     } finally {
       setLoading(false);
     }
-  };
-
-  const generateAi = async () => {
-    if (
-      prompt.length < 50 ||
-      prompt.trim().split(/\s+/).filter(Boolean).length < 10
-    ) {
-      setPromptErros("Need alteast 50 characters and 10 words ");
-      return;
-    }
-    setPromptErros("");
-    setIsGenerating(true);
-    console.log(prompt);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    setIsGenerating(false);
-    setMode("Manual");
   };
 
   return (
