@@ -81,7 +81,7 @@ export default function Roadmap() {
                   )}
 
                   <Card
-                    className={`h-[170px] flex flex-col justify-between rounded-xl border bg-card shadow-sm hover:shadow-lg transition cursor-pointer
+                    className={`h-[200px] flex flex-col justify-between rounded-xl border bg-card shadow-sm hover:shadow-lg transition cursor-pointer
         ${
           isCloned
             ? "border-accent/40 hover:border-accent"
@@ -90,7 +90,7 @@ export default function Roadmap() {
                   >
                     <CardHeader className="space-y-2">
                       <CardTitle
-                        className={`text-lg font-semibold truncate ${
+                        className={`text-lg font-semibold line-clamp-2 ${
                           isCloned ? "text-accent" : "text-foreground"
                         }`}
                       >

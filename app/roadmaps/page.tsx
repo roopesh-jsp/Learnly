@@ -30,12 +30,15 @@ export default async function Roadmap() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {roadmapData?.map((role) => (
           <Link key={role.id} href={`/roadmaps/${role.id}`}>
-            <Card className="rounded-2xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-lg hover:border-primary transition cursor-pointer">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-foreground">
+            {/* ADDED: flex, flex-col, and a fixed height */}
+            <Card className="h-[210px] flex flex-col rounded-2xl border border-border bg-card text-card-foreground shadow-sm hover:shadow-lg hover:border-primary transition cursor-pointer">
+              {/* ADDED: flex-grow to push the content below it to the bottom */}
+              <CardHeader className="flex-grow">
+                <CardTitle className="text-xl font-semibold text-foreground line-clamp-2">
                   {role.title}
                 </CardTitle>
-                <CardDescription className="text-muted-foreground">
+                {/* ADDED: line-clamp-3 to control description length */}
+                <CardDescription className="text-muted-foreground line-clamp-3">
                   {role.description}
                 </CardDescription>
               </CardHeader>

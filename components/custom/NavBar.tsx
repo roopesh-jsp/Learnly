@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X, CircleUserRound } from "lucide-react"; // Added CircleUserRound
+import { Sun, Moon, Menu, X, CircleUserRound, Settings } from "lucide-react"; // Added Settings
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -20,18 +20,31 @@ export default function Navbar() {
   const { data: session } = useSession();
   const desktopMenuRef = useRef<HTMLDivElement>(null);
 
-  const navLinks = [
+  // --- MODIFIED: Separated links for better auth handling ---
+  const publicLinks = [
     { name: "Roadmaps", href: "/roadmaps" },
-    { name: "My learning", href: "/my-learning" },
-    { name: "Dashboard", href: "/dashboard" },
-    {
-      name: "credits",
-      href: "/credits",
-    },
+    { name: "About Us", href: "/about" },
   ];
 
-  const mainDesktopLinks = navLinks.filter((link) => link.name !== "credits");
-  const creditsLink = navLinks.find((link) => link.name === "credits");
+  const privateLinks = [
+    { name: "My learning", href: "/my-learning" },
+    { name: "Dashboard", href: "/dashboard" },
+  ];
+
+  const creditsLink = { name: "Credits", href: "/credits" };
+
+  // Combine links based on session status
+  const mainDesktopLinks = session
+    ? [...publicLinks, ...privateLinks]
+    : publicLinks;
+  const allMobileLinks = session
+    ? [
+        ...publicLinks,
+        ...privateLinks,
+        creditsLink,
+        { name: "About Us", href: "/about" },
+      ]
+    : publicLinks;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -84,11 +97,12 @@ export default function Navbar() {
             </Link>
 
             <div className="hidden md:flex items-center gap-6">
+              {/* --- MODIFIED: Render links based on auth status --- */}
               {mainDesktopLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-foreground hover:text-primary transition-colors"
+                  className="text-foreground hover:text-primary transition-colors capitalize"
                 >
                   {link.name}
                 </Link>
@@ -96,7 +110,6 @@ export default function Navbar() {
 
               {session ? (
                 <div className="relative" ref={desktopMenuRef}>
-                  {/* --- MODIFIED: Avatar Button to trigger dropdown --- */}
                   <button
                     onClick={() => setIsDesktopMenuOpen((prev) => !prev)}
                     className="flex items-center justify-center h-10 w-10 rounded-full bg-muted overflow-hidden focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -116,15 +129,13 @@ export default function Navbar() {
 
                   {isDesktopMenuOpen && (
                     <div className="absolute top-full right-0 mt-2 w-48 bg-background border rounded-md shadow-lg py-1 z-50">
-                      {creditsLink && (
-                        <Link
-                          href={creditsLink.href}
-                          onClick={() => setIsDesktopMenuOpen(false)}
-                          className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
-                        >
-                          Credits
-                        </Link>
-                      )}
+                      <Link
+                        href={creditsLink.href}
+                        onClick={() => setIsDesktopMenuOpen(false)}
+                        className="block px-4 py-2 text-sm text-foreground hover:bg-muted capitalize"
+                      >
+                        {creditsLink.name}
+                      </Link>
                       <div
                         onClick={toggleTheme}
                         className="flex items-center justify-between px-4 py-2 text-sm text-foreground hover:bg-muted cursor-pointer"
@@ -149,25 +160,40 @@ export default function Navbar() {
                   )}
                 </div>
               ) : (
-                <>
-                  <Button onClick={() => signIn()}>Login</Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleTheme}
-                    aria-label="Toggle dark mode"
-                    className="bg-stone-200 cursor-pointer dark:bg-stone-800"
-                  >
-                    {isDark ? (
-                      <Sun className="h-5 w-5" />
-                    ) : (
-                      <Moon className="h-5 w-5" />
+                // --- MODIFIED: Logged-out view with Login and a new dropdown ---
+                <div className="flex items-center gap-2">
+                  <Link href="/signup" passHref>
+                    <Button>Login</Button>
+                  </Link>
+                  <div className="relative" ref={desktopMenuRef}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsDesktopMenuOpen((prev) => !prev)}
+                    >
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                    {isDesktopMenuOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-48 bg-background border rounded-md shadow-lg py-1 z-50">
+                        <div
+                          onClick={toggleTheme}
+                          className="flex items-center justify-between px-4 py-2 text-sm text-foreground hover:bg-muted cursor-pointer"
+                        >
+                          <span>Toggle Theme</span>
+                          {isDark ? (
+                            <Sun className="h-4 w-4" />
+                          ) : (
+                            <Moon className="h-4 w-4" />
+                          )}
+                        </div>
+                      </div>
                     )}
-                  </Button>
-                </>
+                  </div>
+                </div>
               )}
             </div>
 
+            {/* --- Mobile Section --- */}
             <div className="md:hidden flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -193,12 +219,13 @@ export default function Navbar() {
                 transition={{ duration: 0.2 }}
                 className="md:hidden bg-background border-t flex flex-col gap-2 items-center border-border px-6 py-4 space-y-4"
               >
-                {navLinks.map((link) => (
+                {/* --- MODIFIED: Mobile links are now dynamic --- */}
+                {allMobileLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsOpen(false)}
-                    className="block text-foreground hover:text-primary transition-colors"
+                    className="block text-foreground hover:text-primary transition-colors capitalize"
                   >
                     {link.name}
                   </Link>
@@ -228,15 +255,12 @@ export default function Navbar() {
                     Logout
                   </Button>
                 ) : (
-                  <Button
-                    className="w-full"
-                    onClick={() => {
-                      setIsOpen(false);
-                      signIn();
-                    }}
-                  >
-                    Login
-                  </Button>
+                  // --- MODIFIED: Mobile Login button links to /signup ---
+                  <Link href="/signup" passHref className="w-full">
+                    <Button className="w-full" onClick={() => setIsOpen(false)}>
+                      Login
+                    </Button>
+                  </Link>
                 )}
               </motion.div>
             )}

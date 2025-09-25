@@ -202,9 +202,12 @@ export default function AddRoadmap({
   return (
     <Dialog isOpen={isOpen} close={close}>
       {mode == "Ai" ? (
-        <div className="flex w-full max-w-lg flex-col items-center justify-center text-card-foreground ">
-          <h1 className="mb-6 text-3xl font-bold">Generate with AI</h1>
+        <div className="flex w-full max-w-md sm:max-w-lg flex-col items-center justify-center text-card-foreground px-4">
+          <h1 className="mb-6 text-2xl sm:text-3xl font-bold text-center">
+            Generate with AI
+          </h1>
 
+          {/* Prompt Input */}
           <div className="mb-4 w-full">
             <Textarea
               placeholder="Type your prompt here..."
@@ -215,13 +218,13 @@ export default function AddRoadmap({
           </div>
 
           {/* Validation Requirements UI */}
-          <div className="mb-4 flex w-full items-start justify-between gap-6 text-sm">
-            <div className="flex gap-2 text-sm font-bold capitalize px-1">
+          <div className="mb-4 w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-6 text-xs sm:text-sm">
+            <div className="flex gap-2 font-bold capitalize px-1">
               <span className="whitespace-nowrap text-stone-600">
                 credits : {credits}
               </span>
             </div>
-            <div className="mb-4 flex w-full items-center justify-end gap-6 text-sm">
+            <div className="flex w-full sm:w-auto flex-wrap items-center justify-start sm:justify-end gap-4">
               <div
                 className={cn(
                   "flex items-center gap-2 transition-colors",
@@ -247,36 +250,40 @@ export default function AddRoadmap({
             </div>
           </div>
 
+          {/* Generate Button */}
           <Button
             onClick={generateAi}
             size="lg"
-            className="w-full sm:w-auto disabled:bg-stone-500 disabled:cursor-progress"
+            className="w-full disabled:bg-stone-500 disabled:cursor-progress"
             disabled={isGenerating || credits <= 0}
           >
             <Sparkle />
             {isGenerating ? "Generating ..." : "Generate"}
           </Button>
+
+          {/* API Error */}
           {apiError && (
-            <div className="mt-4 w-full flex items-center rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="mt-4 w-full flex items-center rounded-md border border-destructive/50 bg-destructive/10 p-3 text-xs sm:text-sm text-destructive">
               <AlertTriangle className="mr-2 h-4 w-4 flex-shrink-0" />
               <span>{apiError}</span>
             </div>
           )}
 
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="mt-4 text-xs sm:text-sm text-muted-foreground text-center">
             This will cost you 1 credit.
           </p>
-          {/* Main Error Message */}
+
+          {/* Prompt Errors */}
           {promptErros && (
-            <div className="mt-2 flex items-center rounded-md border border-destructive/50 bg-destructive/10 p-2 text-sm text-destructive">
+            <div className="mt-2 flex items-center rounded-md border border-destructive/50 bg-destructive/10 p-2 text-xs sm:text-sm text-destructive">
               <AlertTriangle className="mr-2 h-4 w-4 flex-shrink-0" />
               <span>{promptErros}</span>
             </div>
           )}
         </div>
       ) : (
-        <div className="w-[600px] max-w-full space-y-6">
-          <h1 className="text-3xl text-center font-bold text-primary tracking-tight">
+        <div className="w-full max-w-md sm:max-w-2xl space-y-6 px-4">
+          <h1 className="text-2xl sm:text-3xl text-center font-bold text-primary tracking-tight">
             Add a Roadmap
           </h1>
 
@@ -289,7 +296,9 @@ export default function AddRoadmap({
               className={errors.title ? "border-red-500" : ""}
             />
             {errors.title && (
-              <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+              <p className="text-red-500 text-xs sm:text-sm mt-1">
+                {errors.title}
+              </p>
             )}
           </div>
 
@@ -304,7 +313,9 @@ export default function AddRoadmap({
               className={errors.description ? "border-red-500" : ""}
             />
             {errors.description && (
-              <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+              <p className="text-red-500 text-xs sm:text-sm mt-1">
+                {errors.description}
+              </p>
             )}
           </div>
 
@@ -314,6 +325,7 @@ export default function AddRoadmap({
               type="button"
               variant="outline"
               onClick={handleAddMicrotask}
+              className="text-xs sm:text-sm"
             >
               + Add Microtask
             </Button>
@@ -324,10 +336,10 @@ export default function AddRoadmap({
             {form.microtasks.map((microtask, idx) => (
               <div
                 key={microtask.id}
-                className="border rounded-xl p-4 bg-muted/30 shadow-sm space-y-3"
+                className="border rounded-xl p-3 sm:p-4 bg-muted/30 shadow-sm space-y-3"
               >
                 {/* Microtask Header */}
-                <div className="flex items-start gap-2 justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-2 justify-between">
                   <div className="flex-1">
                     <Input
                       placeholder={`Microtask ${idx + 1}`}
@@ -347,17 +359,18 @@ export default function AddRoadmap({
                       }
                     />
                     {errors[`micro-${microtask.id}`] && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-red-500 text-xs sm:text-sm mt-1">
                         {errors[`micro-${microtask.id}`]}
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
                       size="sm"
                       variant="secondary"
                       onClick={() => handleAddTask(microtask.id)}
+                      className="text-xs sm:text-sm"
                     >
                       + Add Task
                     </Button>
@@ -372,7 +385,7 @@ export default function AddRoadmap({
                 </div>
 
                 {/* Tasks */}
-                <div className="space-y-2 ml-6">
+                <div className="space-y-2 ml-3 sm:ml-6">
                   {microtask.tasks.map((task, tIdx) => (
                     <div key={task.id} className="flex items-center gap-2">
                       <div className="flex-1">
@@ -401,7 +414,7 @@ export default function AddRoadmap({
                           }
                         />
                         {errors[`task-${task.id}`] && (
-                          <p className="text-red-500 text-sm mt-1">
+                          <p className="text-red-500 text-xs sm:text-sm mt-1">
                             {errors[`task-${task.id}`]}
                           </p>
                         )}
@@ -420,13 +433,19 @@ export default function AddRoadmap({
             ))}
           </div>
 
-          {/* actions buttons  */}
-          <div className="flex gap-7 w-ful items-center justify-center">
-            {/* Submit Button */}
-            <Button className=" w-fit !px-9" onClick={() => setMode("Ai")}>
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-7 w-full items-center justify-center">
+            <Button
+              className="w-full sm:w-fit !px-6 text-sm sm:text-base"
+              onClick={() => setMode("Ai")}
+            >
               <Sparkle /> AI
             </Button>
-            <Button onClick={handleSubmit} disabled={loading}>
+            <Button
+              className="w-full sm:w-fit text-sm sm:text-base"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
