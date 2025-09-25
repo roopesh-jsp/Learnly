@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X, CircleUserRound } from "lucide-react"; // Added CircleUserRound
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -14,17 +15,24 @@ export default function Navbar() {
 
   const [isDark, setIsDark] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
 
   const { data: session } = useSession();
+  const desktopMenuRef = useRef<HTMLDivElement>(null);
 
-  // Define nav links
   const navLinks = [
     { name: "Roadmaps", href: "/roadmaps" },
     { name: "My learning", href: "/my-learning" },
     { name: "Dashboard", href: "/dashboard" },
+    {
+      name: "credits",
+      href: "/credits",
+    },
   ];
 
-  // Load theme from localStorage (persist across refresh)
+  const mainDesktopLinks = navLinks.filter((link) => link.name !== "credits");
+  const creditsLink = navLinks.find((link) => link.name === "credits");
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const root = window.document.documentElement;
@@ -34,6 +42,21 @@ export default function Navbar() {
         setIsDark(true);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        desktopMenuRef.current &&
+        !desktopMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsDesktopMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -51,21 +74,17 @@ export default function Navbar() {
 
   return (
     <>
-      {hideNavbar ? (
-        <></>
-      ) : (
+      {hideNavbar ? null : (
         <nav className="fixed top-0 left-0 w-full bg-background/80 backdrop-blur-md border-b border-border z-50">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            {/* Logo */}
             <Link href={"/"}>
               <h1 className="text-2xl font-bold text-primary tracking-tight">
                 Learnly
               </h1>
             </Link>
 
-            {/* Desktop Nav Links */}
             <div className="hidden md:flex items-center gap-6">
-              {navLinks.map((link) => (
+              {mainDesktopLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -75,46 +94,81 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              {/* Auth Buttons */}
               {session ? (
-                <Button variant="outline" onClick={() => signOut()}>
-                  Logout
-                </Button>
-              ) : (
-                <Button onClick={() => signIn()}>Login</Button>
-              )}
+                <div className="relative" ref={desktopMenuRef}>
+                  {/* --- MODIFIED: Avatar Button to trigger dropdown --- */}
+                  <button
+                    onClick={() => setIsDesktopMenuOpen((prev) => !prev)}
+                    className="flex items-center justify-center h-10 w-10 rounded-full bg-muted overflow-hidden focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    {session.user?.image ? (
+                      <Image
+                        src={session.user.image}
+                        alt={session.user.name || "User"}
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                      />
+                    ) : (
+                      <CircleUserRound className="h-8 w-8 text-muted-foreground" />
+                    )}
+                  </button>
 
-              {/* Dark Mode Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                aria-label="Toggle dark mode"
-                className="bg-stone-200 cursor-pointer dark:bg-stone-800"
-              >
-                {isDark ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+                  {isDesktopMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-background border rounded-md shadow-lg py-1 z-50">
+                      {creditsLink && (
+                        <Link
+                          href={creditsLink.href}
+                          onClick={() => setIsDesktopMenuOpen(false)}
+                          className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
+                        >
+                          Credits
+                        </Link>
+                      )}
+                      <div
+                        onClick={toggleTheme}
+                        className="flex items-center justify-between px-4 py-2 text-sm text-foreground hover:bg-muted cursor-pointer"
+                      >
+                        <span>Toggle Theme</span>
+                        {isDark ? (
+                          <Sun className="h-4 w-4" />
+                        ) : (
+                          <Moon className="h-4 w-4" />
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setIsDesktopMenuOpen(false);
+                          signOut();
+                        }}
+                        className="w-full text-left block px-4 py-2 text-sm text-destructive hover:bg-muted"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Button onClick={() => signIn()}>Login</Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleTheme}
+                    aria-label="Toggle dark mode"
+                    className="bg-stone-200 cursor-pointer dark:bg-stone-800"
+                  >
+                    {isDark ? (
+                      <Sun className="h-5 w-5" />
+                    ) : (
+                      <Moon className="h-5 w-5" />
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
 
-            {/* Mobile Hamburger */}
             <div className="md:hidden flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                aria-label="Toggle dark mode"
-                className="bg-stone-200 cursor-pointer dark:bg-stone-800"
-              >
-                {isDark ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -130,7 +184,6 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Menu (Animated with Framer Motion) */}
           <AnimatePresence>
             {isOpen && (
               <motion.div
@@ -138,7 +191,7 @@ export default function Navbar() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
-                className="md:hidden bg-background border-t border-border px-6 py-4 space-y-4"
+                className="md:hidden bg-background border-t flex flex-col gap-2 items-center border-border px-6 py-4 space-y-4"
               >
                 {navLinks.map((link) => (
                   <Link
@@ -150,8 +203,19 @@ export default function Navbar() {
                     {link.name}
                   </Link>
                 ))}
-
-                {/* Auth Buttons Mobile */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  aria-label="Toggle dark mode"
+                  className="bg-stone-200 cursor-pointer dark:bg-stone-800"
+                >
+                  {isDark ? (
+                    <Sun className="h-5 w-5" />
+                  ) : (
+                    <Moon className="h-5 w-5" />
+                  )}
+                </Button>
                 {session ? (
                   <Button
                     variant="outline"

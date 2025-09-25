@@ -17,7 +17,7 @@ model User {
   emailVerified DateTime?
   image         String?
   accounts      Account[]
-
+  credits         Int            @default(5) 
   // relations with new models
   userTasks UserTask[]
   roadmaps  Roadmap[]       @relation("UserRoadmaps")

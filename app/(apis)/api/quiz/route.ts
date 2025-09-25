@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { z } from "zod";
 import { StructuredOutputParser } from "langchain/output_parsers";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 // 1️⃣ Define schema for QuizProps
 const QuizSchema = z.object({
@@ -38,10 +40,19 @@ const parser = StructuredOutputParser.fromZodSchema(QuizSchema);
 export async function POST(req: Request) {
   try {
     const { roadmapText, noOfQuestions, difficulity } = await req.json();
-    console.log(roadmapText, noOfQuestions, difficulity);
-
     const roadmapData = extractRoadmapData(roadmapText);
-
+    const us = await auth();
+    if (!us)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await db.user.findUnique({
+      where: { id: us?.user?.id },
+    });
+    if (!user || user.credits <= 0) {
+      return NextResponse.json(
+        { error: "Insufficient credits" },
+        { status: 403 }
+      );
+    }
     if (
       !roadmapData ||
       roadmapData.length < 20 ||
@@ -114,7 +125,12 @@ ${roadmapData}
         { status: 422 }
       );
     }
+    console.log(us);
 
+    await db.user.update({
+      where: { id: us?.user?.id },
+      data: { credits: { decrement: 1 } },
+    });
     return NextResponse.json(parsedQuiz);
   } catch (err: any) {
     console.error("Error generating quiz:", err);

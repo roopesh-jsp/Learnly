@@ -42,8 +42,30 @@ export default function AddRoadmap({
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [credits, setCredits] = useState(0);
   const [promptErros, setPromptErros] = useState("");
+
+  const getCredits = async () => {
+    try {
+      const res = await fetch("/api/credits", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await res.json();
+      console.log(data.credits);
+
+      setCredits(data.credits);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getCredits();
+  }, []);
 
   const generateAi = async () => {
     if (
@@ -54,6 +76,7 @@ export default function AddRoadmap({
       return;
     }
     setPromptErros("");
+    setApiError("");
     setIsGenerating(true);
     try {
       const res = await fetch("http://localhost:3000/api/roadmaps/ai", {
@@ -72,8 +95,9 @@ export default function AddRoadmap({
       console.log(data);
       setForm(data);
       setMode("Manual");
-    } catch (error) {
+    } catch (error: any) {
       console.log("error on getting the roadmap by prompt", error);
+      setApiError(error.message);
     } finally {
       setIsGenerating(false);
     }
@@ -191,28 +215,35 @@ export default function AddRoadmap({
           </div>
 
           {/* Validation Requirements UI */}
-          <div className="mb-4 flex w-full items-center justify-end gap-6 text-sm">
-            <div
-              className={cn(
-                "flex items-center gap-2 transition-colors",
-                errors.charLength ? "text-destructive" : "text-emerald-500"
-              )}
-            >
-              <FileText className="h-4 w-4" />
-              <span className="font-medium">{prompt.length}</span>
-              <span className="text-muted-foreground">/ 50 Chars</span>
-            </div>
-            <div
-              className={cn(
-                "flex items-center gap-2 transition-colors",
-                errors.wordCount ? "text-destructive" : "text-emerald-500"
-              )}
-            >
-              <WholeWord className="h-4 w-4" />
-              <span className="font-medium">
-                {prompt.trim().split(/\s+/).filter(Boolean).length}
+          <div className="mb-4 flex w-full items-start justify-between gap-6 text-sm">
+            <div className="flex gap-2 text-sm font-bold capitalize px-1">
+              <span className="whitespace-nowrap text-stone-600">
+                credits : {credits}
               </span>
-              <span className="text-muted-foreground">/ 10 Words</span>
+            </div>
+            <div className="mb-4 flex w-full items-center justify-end gap-6 text-sm">
+              <div
+                className={cn(
+                  "flex items-center gap-2 transition-colors",
+                  errors.charLength ? "text-destructive" : "text-emerald-500"
+                )}
+              >
+                <FileText className="h-4 w-4" />
+                <span className="font-medium">{prompt.length}</span>
+                <span className="text-muted-foreground">/ 50 Chars</span>
+              </div>
+              <div
+                className={cn(
+                  "flex items-center gap-2 transition-colors",
+                  errors.wordCount ? "text-destructive" : "text-emerald-500"
+                )}
+              >
+                <WholeWord className="h-4 w-4" />
+                <span className="font-medium">
+                  {prompt.trim().split(/\s+/).filter(Boolean).length}
+                </span>
+                <span className="text-muted-foreground">/ 10 Words</span>
+              </div>
             </div>
           </div>
 
@@ -220,11 +251,18 @@ export default function AddRoadmap({
             onClick={generateAi}
             size="lg"
             className="w-full sm:w-auto disabled:bg-stone-500 disabled:cursor-progress"
-            disabled={isGenerating}
+            disabled={isGenerating || credits <= 0}
           >
             <Sparkle />
             {isGenerating ? "Generating ..." : "Generate"}
           </Button>
+          {apiError && (
+            <div className="mt-4 w-full flex items-center rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertTriangle className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span>{apiError}</span>
+            </div>
+          )}
+
           <p className="mt-4 text-sm text-muted-foreground">
             This will cost you 1 credit.
           </p>

@@ -418,10 +418,10 @@ const RoadMap = () => {
                 <AccordionItem
                   key={micro.id}
                   value={micro.id}
-                  className="md:rounded-xl rounded-md border border-border bg-card/60 shadow-sm overflow-hidden"
+                  className="md:rounded-xl w-full rounded-md border border-border bg-card/60 shadow-sm overflow-hidden"
                 >
-                  <div className="relative flex items-center justify-between pr-3">
-                    <AccordionTrigger className="font-semibold text-sm md:text-lg [&>svg]:hidden whitespace-normal text-[var(--primary)] px-4 py-3 hover:bg-[var(--primary)]/5 hover:no-underline transition">
+                  <div className="relative w-full  flex items-center justify-between pr-3 hover:bg-[var(--primary)]/5">
+                    <AccordionTrigger className="font-semibold  text-sm md:text-lg [&>svg]:hidden whitespace-normal w-full text-[var(--primary)] px-4 py-3  hover:no-underline transition">
                       {micro.title}
                     </AccordionTrigger>
 

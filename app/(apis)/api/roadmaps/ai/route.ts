@@ -1,3 +1,5 @@
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { NextResponse } from "next/server";
@@ -30,6 +32,20 @@ export async function POST(req: Request) {
       {
         status: 500,
       }
+    );
+  }
+
+  const us = await auth();
+  if (!us) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await db.user.findUnique({
+    where: { id: us?.user?.id },
+  });
+  console.log(user);
+
+  if (!user || user.credits <= 0) {
+    return NextResponse.json(
+      { error: "Insufficient credits" },
+      { status: 403 }
     );
   }
   try {
@@ -84,6 +100,10 @@ Return the JSON directly.
       .trim();
     const generatedRoadMap = await parser.parse(rawContent);
     console.log(generatedRoadMap);
+    await db.user.update({
+      where: { id: us?.user?.id },
+      data: { credits: { decrement: 1 } },
+    });
     return NextResponse.json(generatedRoadMap);
   } catch (error) {
     console.log(error);
