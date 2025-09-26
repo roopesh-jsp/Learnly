@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 // DELETE /api/microtasks/:microtaskId
 export async function DELETE(
   req: Request,
-  { params }: { params: { microtaskId: string } }
+  { params }: { params: Promise<{ microtaskId: string }> }
 ) {
   try {
     const session = await auth();
@@ -13,7 +13,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const microtaskId = params.microtaskId;
+    const { microtaskId } = await params;
 
     // Check ownership
     const micro = await db.microtask.findUnique({

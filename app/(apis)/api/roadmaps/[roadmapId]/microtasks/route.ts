@@ -4,14 +4,14 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   req: Request,
-  { params }: { params: { roadmapId: string } }
+  { params }: { params: Promise<{ roadmapId: string }> }
 ) {
   try {
     const user = await auth();
     if (!user?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
+    const { roadmapId } = await params;
     const { title } = await req.json();
     if (!title?.trim()) {
       return NextResponse.json({ error: "Title required" }, { status: 400 });
@@ -20,7 +20,7 @@ export async function POST(
     const microtask = await db.microtask.create({
       data: {
         title,
-        roadmapId: params.roadmapId,
+        roadmapId,
       },
     });
 
