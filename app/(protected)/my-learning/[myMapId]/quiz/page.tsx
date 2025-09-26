@@ -153,6 +153,27 @@ const QuizPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [roadmapQuiz, setRoadmapQuiz] = useState<QuizData | null>(null);
   const router = useRouter();
+  const [credits, setCredits] = useState(0);
+
+  const getCredits = async () => {
+    try {
+      const res = await fetch("/api/credits", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await res.json();
+      console.log(data.credits);
+
+      setCredits(data.credits);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getCredits();
+  }, []);
 
   const handleStartQuiz = async () => {
     console.log("Starting quiz with:", { numQuestions, difficulty });
@@ -160,7 +181,7 @@ const QuizPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("api/quiz", {
+      const res = await fetch(`/api/quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -337,11 +358,16 @@ const QuizPage = () => {
           <div className="text-center mb-8">
             <button
               onClick={handleStartQuiz}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg rounded-xl shadow-lg hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200"
+              disabled={credits <= 0}
+              className="inline-flex items-center disabled:cursor-not-allowed disabled:bg-stone-300 gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg rounded-xl shadow-lg hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200"
             >
               <Play className="w-6 h-6" />
               Start Quiz
             </button>
+            <div className="flex flex-col gap-2 capitalize text-sm text-gray-600 mt-4">
+              <p>this will cost you 1 credit.</p>
+              <b>current Balance : {credits}</b>
+            </div>
           </div>
 
           {/* Instructions */}

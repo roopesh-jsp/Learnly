@@ -79,7 +79,7 @@ export default function AddRoadmap({
     setApiError("");
     setIsGenerating(true);
     try {
-      const res = await fetch("api/roadmaps/ai", {
+      const res = await fetch("/api/roadmaps/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
