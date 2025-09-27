@@ -1,50 +1,60 @@
 # Learnly
 
-### Personalized Learning Tracker
+### AI-Powered Personalized Learning Platform
 
-**Learnly** is a smart, personalized learning tracker designed to help you achieve your long-term educational goals.  
-This app moves beyond simple task management by intelligently generating micro-goals from your larger aspirations and providing insightful weekly progress reports.
+**Learnly** is an intelligent, full-stack learning platform designed to help learners structure, track, and achieve their educational goals efficiently.  
+It combines AI-powered roadmap generation, quizzes, and collaboration features to provide a complete learning ecosystem.
 
-By integrating **Gemini AI**, Learnly provides a unique, data-driven approach to learning, helping you stay motivated and on track.
+By integrating **AI (LangChain + Google Generative AI)**, Learnly generates structured learning paths, helps you test your knowledge, and tracks progress—keeping you motivated and on track.
 
 ---
 
 ## 🚀 Key Features
 
-**Learnly** is built to provide a comprehensive and motivating learning experience. Here's a look at some of its core functionalities:
+**Learnly** provides a comprehensive learning experience with the following functionalities:
 
-- **Intelligent Goal Breakdown**  
-  Instead of feeling overwhelmed by a big goal like _"learn Python,"_ Gemini AI breaks it down into small, actionable steps, such as _"complete a beginner's Python tutorial"_ or _"build a simple web scraper."_
+- **AI-Powered Roadmaps**  
+  Generate structured learning paths automatically for any subject or technology. You can also create roadmaps manually or combine both approaches.
 
-- **Progress Visualization**  
-  A custom dashboard provides a clear visual representation of your learning journey with charts and graphs, allowing you to easily see your progress over time.
+- **Collaborative Learning & Cloning**  
+  Share your roadmaps with friends, classmates, or students. Cloned roadmaps automatically sync updates from the original, enabling seamless collaboration.
 
-- **AI-Powered Reports**  
-  At the end of each week, Gemini AI compiles your completed micro-goals into a concise report, highlighting your accomplishments and offering a summary of your efforts.
+- **Progress Tracking**  
+  Visual dashboards show your completed tasks, helping you track growth and stay consistent.
 
-- **Google Calendar Sync**  
-  Effortlessly sync your micro-goals to your Google Calendar, making it simple to plan your study sessions and manage your time effectively.
-
-- **Gamified Motivation**  
-  A built-in badge system rewards you for milestones and streaks, adding a fun, gamified element to your learning journey and keeping you engaged.
-
-- **Goal-Specific Quizzes** 📝  
-  Automatically generate interactive quizzes tailored to your learning goals for better practice and self-assessment.
+- **AI-Powered Quizzes** 🧠  
+  Test your understanding with quizzes tailored to your roadmap topics.
 
 - **Printable Worksheets** 📄  
-  Download structured, printable worksheets that help reinforce concepts and enable offline practice.
+  Download offline study materials for focused, device-free learning.
+
+- **Flexibility & Personalization**  
+  Roadmaps can be customized to match your pace and learning style.
 
 ---
 
 ## 🛠️ Technology Stack
 
-Learnly is built using the **MERN stack**, with a focus on creating a robust and scalable application.
+Learnly is built with modern technologies for scalability and performance:
 
-- **Frontend**: Next.js + React.js → fast and interactive user interface.
-- **Backend**: Node.js + Express → handles user authentication, goal management, and API integrations.
-- **Database**: MongoDB → stores user data, including goals, progress, and reports.
-- **AI**: Gemini AI → drives intelligent goal generation, quizzes, and progress summary features.
+- **Frontend**: Next.js + TypeScript + Tailwind CSS → fast, responsive, and interactive UI.  
+- **Backend**: Next.js API routes → secure and flexible backend.  
+- **Database**: Neon DB (Postgres) with Prisma ORM → structured and reliable data storage.  
+- **Authentication**: Auth.js → secure login and user management.  
+- **AI Integration**: LangChain + Google Generative AI → powers roadmap generation and quizzes.  
+- **Deployment**: Vercel → serverless hosting for global accessibility.
 
 ---
 
-✨ Whether you're tackling a new programming language or mastering a complex subject, **Learnly** is your intelligent partner in education.
+## 🎯 Use Cases
+
+- **Self-Learners**: Organize learning paths, track progress, and test knowledge.  
+- **Students**: Collaborate with peers and prepare efficiently for exams.  
+- **Tutors & Instructors**: Share exclusive learning roadmaps with students and track their progress.  
+- **Communities & Teams**: Build public roadmaps and enable collaborative skill development.
+
+---
+
+✨ Learnly makes learning structured, intelligent, and collaborative—helping anyone from beginners to professionals achieve their learning goals efficiently.
+
+
