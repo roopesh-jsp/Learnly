@@ -26,6 +26,7 @@ import {
   Copy,
   Download,
   Pencil,
+  Share2,
   Sparkle,
   Trash,
   User,
@@ -69,7 +70,7 @@ const RoadMap = () => {
   });
 
   const [roadmap, setRoadmap] = useState<RoadmapWithData | null>(null);
-  const [isCloned, setIsCloned] = useState(false);
+  const [isCloned, setIsCloned] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
 
@@ -311,30 +312,54 @@ const RoadMap = () => {
   return (
     <div className="w-full mt-20 min-h-screen md:p-6   relative ">
       {/* Top action buttons */}
-      <div className="flex gap-3 justify-center md:justify-end w-full  top-4 right-4">
+      <div className="flex gap-2 md:gap-3 justify-center md:justify-end w-full top-4 right-4 flex-wrap">
         {!isCloned && (
           <button
             onClick={() => setEditMode(!editMode)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full 
-                 bg-white/10 backdrop-blur-md border border-primary/20 
-                 text-[var(--primary)] font-medium shadow-sm 
-                 hover:bg-[var(--primary)] hover:text-white hover:shadow-lg 
-                 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 md:gap-2 
+           px-2.5 py-1.5 md:px-4 md:py-2 
+           rounded-full bg-white/10 backdrop-blur-md 
+           border border-primary/20 text-[var(--primary)] 
+           text-xs md:text-sm font-medium shadow-sm 
+           hover:bg-[var(--primary)] hover:text-white hover:shadow-lg 
+           transition-all cursor-pointer"
           >
-            <Pencil className="w-4 h-4" />
+            <Pencil className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span>Properties</span>
           </button>
         )}
 
+        {/* 🔗 Share button */}
+        <button
+          onClick={() => {
+            const currentUrl = window.location.href;
+            const shareUrl = currentUrl.replace("/my-learning/", "/roadmaps/");
+            navigator.clipboard.writeText(shareUrl);
+            alert("Link copied to clipboard!");
+          }}
+          className="flex items-center gap-1.5 md:gap-2 
+         px-2.5 py-1.5 md:px-4 md:py-2 
+         rounded-full bg-white/10 backdrop-blur-md 
+         border border-blue-200 text-blue-600 
+         text-xs md:text-sm font-medium shadow-sm 
+         hover:bg-blue-500 hover:text-white hover:shadow-lg 
+         transition-all cursor-pointer"
+        >
+          <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          <span>Share</span>
+        </button>
+
         <button
           onClick={() => setDeleteMode(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-full 
-               bg-white/10 backdrop-blur-md border border-red-200 
-               text-red-600 font-medium shadow-sm 
-               hover:bg-red-500 hover:text-white hover:shadow-lg 
-               transition-all cursor-pointer"
+          className="flex items-center gap-1.5 md:gap-2 
+         px-2.5 py-1.5 md:px-4 md:py-2 
+         rounded-full bg-white/10 backdrop-blur-md 
+         border border-red-200 text-red-600 
+         text-xs md:text-sm font-medium shadow-sm 
+         hover:bg-red-500 hover:text-white hover:shadow-lg 
+         transition-all cursor-pointer"
         >
-          <Trash className="w-4 h-4" />
+          <Trash className="w-3.5 h-3.5 md:w-4 md:h-4" />
           <span>{isCloned ? "Un-clone" : "Delete"}</span>
         </button>
       </div>
