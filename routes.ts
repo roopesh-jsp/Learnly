@@ -1,4 +1,10 @@
-export const publicRoutes = ["/", "/roadmaps", "/about"];
+export const publicRoutes = [
+  "/",
+  "/roadmaps",
+  "/roadmaps/*",
+  "/about",
+  "/features",
+];
 
 export const privateRoutes = ["/dashboard"];
 

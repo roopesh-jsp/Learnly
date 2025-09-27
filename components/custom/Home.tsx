@@ -33,7 +33,11 @@ export function Hero() {
             <Button size="lg" onClick={() => router.push("/roadmaps")}>
               Explore Roadmaps
             </Button>
-            <Button size="lg" variant="outline">
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => router.push("/features")}
+            >
               How It Works
             </Button>
           </div>
